@@ -1,7 +1,7 @@
 [package]
 name = "desktop-app"
-version = "0.1.0"
-description = "A Tauri App"
+version = "2.0.0"
+description = "iTVT Desktop App"
 authors = ["you"]
 edition = "2021"
 
