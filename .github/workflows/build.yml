@@ -72,10 +72,29 @@ jobs:
       - name: Install dependencies
         shell: pwsh
         run: pnpm install --frozen-lockfile
-  
+
+
+      - name: Debug PATH
+        shell: pwsh
+        run: |
+          Get-Command pkg-config -ErrorAction SilentlyContinue
+          echo $env:PATH
+          echo $env:PKG_CONFIG
+
+      - name: Export pkg-config
+        shell: pwsh
+        run: |
+          echo "PKG_CONFIG=C:\msys64\mingw64\bin\pkg-config.exe" >> $env:GITHUB_ENV
+
+      - name: Verify exported pkg-config
+        shell: pwsh
+        run: |
+          echo $env:PKG_CONFIG
+
       - name: Build Tauri (Windows)
         shell: pwsh
         env:
+          PKG_CONFIG: C:\msys64\mingw64\bin\pkg-config.exe
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         run: pnpm tauri build
