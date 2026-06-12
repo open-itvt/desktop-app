@@ -28,12 +28,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: pnpm
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
           version: 9
-          run_install: false
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -43,24 +43,26 @@ jobs:
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
 
-      - name: Setup vcpkg
+      # =========================
+      # PRECOMPILED GSTREAMER
+      # =========================
+      - name: Install GStreamer (prebuilt)
         shell: powershell
         run: |
-          if (!(Test-Path "C:\vcpkg")) {
-            git clone https://github.com/microsoft/vcpkg C:\vcpkg
-            C:\vcpkg\bootstrap-vcpkg.bat
-          }
+          Invoke-WebRequest `
+            https://gstreamer.freedesktop.org/data/pkg/windows/1.24.12/msvc/gstreamer-1.0-msvc-x86_64-1.24.12.msi `
+            -OutFile gstreamer.msi
 
-          echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
-          echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $env:GITHUB_ENV
+          Start-Process msiexec.exe `
+            -ArgumentList '/i gstreamer.msi /quiet /norestart' `
+            -Wait
 
-      - name: Install GStreamer (vcpkg)
+      - name: Setup GStreamer env
         shell: powershell
         run: |
-          C:\vcpkg\vcpkg.exe integrate install
-
-          C:\vcpkg\vcpkg.exe install `
-            "gstreamer[plugins-base,plugins-good,plugins-bad,plugins-ugly,libav,hls]:x64-windows"
+          echo "GSTREAMER_1_0_ROOT_MSVC_X86_64=C:\gstreamer\1.0\msvc_x86_64" >> $env:GITHUB_ENV
+          echo "PKG_CONFIG_PATH=C:\gstreamer\1.0\msvc_x86_64\lib\pkgconfig" >> $env:GITHUB_ENV
+          echo "PATH=C:\gstreamer\1.0\msvc_x86_64\bin;$env:PATH" >> $env:GITHUB_ENV
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -70,8 +72,6 @@ jobs:
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-          VCPKG_ROOT: C:\vcpkg
-          GST_PLUGIN_PATH: C:\vcpkg\installed\x64-windows\plugins\gstreamer
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
@@ -91,12 +91,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: pnpm
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
           version: 9
-          run_install: false
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -106,7 +106,7 @@ jobs:
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
 
-      - name: Install GStreamer
+      - name: Install GStreamer (prebuilt)
         run: |
           brew update
           brew install \
@@ -142,12 +142,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: pnpm
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
           version: 9
-          run_install: false
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -158,13 +158,8 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-
           sudo apt-get install -y \
-            software-properties-common \
-            build-essential \
-            curl \
-            wget \
-            file \
+            pkg-config \
             libssl-dev \
             libgtk-3-dev \
             libwebkit2gtk-4.1-dev \
@@ -172,8 +167,13 @@ jobs:
             librsvg2-dev \
             libfuse2 \
             libunwind-dev \
+            libgl1-mesa-dev \
+            libegl1-mesa-dev \
+            libxdo-dev \
             libgstreamer1.0-dev \
             libgstreamer-plugins-base1.0-dev \
+            libgstreamer-plugins-good1.0-dev \
+            libgstreamer-plugins-bad1.0-dev \
             gstreamer1.0-tools \
             gstreamer1.0-plugins-base \
             gstreamer1.0-plugins-good \
@@ -201,11 +201,7 @@ jobs:
 
   release:
     if: github.event_name == 'workflow_dispatch'
-
-    needs:
-      - build-windows
-      - build-macos
-      - build-linux
+    needs: [build-windows, build-macos, build-linux]
 
     runs-on: ubuntu-latest
 
@@ -216,41 +212,20 @@ jobs:
         id: version
         run: |
           VERSION="${{ github.event.inputs.version }}"
-
           if [ -z "$VERSION" ]; then
             VERSION=$(node -p "require('./package.json').version")
           fi
-
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
-      - name: Download all artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
-
-      - name: Generate release notes
-        id: notes
-        run: |
-          {
-            echo 'notes<<EOF'
-            echo "# iTVT ${{ steps.version.outputs.version }}"
-            echo ""
-            echo "Zintegrowana aplikacja do streamingu TV i VOD."
-            echo ""
-            echo "## Co nowego"
-            echo "- Odtwarzanie HLS przez GStreamer"
-            echo "- Biblioteka VOD z integracją Odysee/LBRY"
-            echo "- Harmonogram EPG z filtrami"
-            echo "- Profil użytkownika z zapisanymi filmami"
-            echo "- Tryb jasny/ciemny"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: iTVT ${{ steps.version.outputs.version }}
-          body: ${{ steps.notes.outputs.notes }}
           draft: false
           prerelease: false
           files: |
