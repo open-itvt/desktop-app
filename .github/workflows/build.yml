@@ -66,18 +66,8 @@ jobs:
       shell: pwsh
       run: pnpm install --frozen-lockfile
 
-    - name: Setup pkg-config for MSVC build
-      shell: pwsh
-      run: |
-        $msysPkgConfig = "C:\msys64\mingw64\bin\pkgconf.exe"
-        if (Test-Path $msysPkgConfig) {
-          "PKG_CONFIG=$msysPkgConfig" | Out-File -FilePath $env:GITHUB_ENV -Append
-        }
-        $msysBin = "C:\msys64\mingw64\bin"
-        if (Test-Path $msysBin) {
-          $msysBin | Out-File -FilePath $env:GITHUB_PATH -Append
-        }
-        Get-ChildItem "C:\msys64\mingw64\bin\pkg*" -Name
+    - name: Install pkg-config (for glib-sys / gstreamer-sys)
+      run: choco install pkgconfiglite -y
 
     - name: Build Tauri (Windows)
       shell: pwsh
