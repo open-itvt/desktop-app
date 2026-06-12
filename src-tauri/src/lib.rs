@@ -1,6 +1,7 @@
 use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
+use tauri::Manager;
 
 mod player;
 use player::HlsPlayer;
