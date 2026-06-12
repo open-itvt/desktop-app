@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g. 2.0.0)'
+        description: 'Release version (e.g. 0.1.0)'
         required: false
         default: ''
 
@@ -27,16 +27,17 @@ jobs:
           node-version: 20
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v3
         with:
           version: 9
+          run_install: false
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: pnpm install
 
       - name: Build Tauri (Windows)
@@ -62,21 +63,22 @@ jobs:
           node-version: 20
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v3
         with:
           version: 9
+          run_install: false
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin
 
-      - name: Install system deps (GStreamer)
+      - name: Install system deps
         run: |
           brew install gstreamer gst-plugins-base gst-plugins-good \
           gst-plugins-bad gst-plugins-ugly gst-libav
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: pnpm install
 
       - name: Build Tauri (macOS)
@@ -102,14 +104,15 @@ jobs:
           node-version: 20
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v3
         with:
           version: 9
+          run_install: false
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install system deps (Tauri + GStreamer)
+      - name: Install system deps
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -118,7 +121,7 @@ jobs:
             gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
             gstreamer1.0-libav libgstreamer-plugins-bad1.0-dev
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: pnpm install
 
       - name: Build Tauri (Linux)
