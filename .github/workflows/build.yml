@@ -135,6 +135,7 @@ jobs:
             libayatana-appindicator3-dev \
             librsvg2-dev \
             libfuse2 \
+            libunwind-dev \
             libgstreamer1.0-dev \
             libgstreamer-plugins-base1.0-dev \
             libgstreamer-plugins-good1.0-dev \
