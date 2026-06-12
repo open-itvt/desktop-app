@@ -66,6 +66,11 @@ jobs:
       shell: pwsh
       run: pnpm install --frozen-lockfile
 
+    - name: Add MSYS2 to PATH (pkg-config for gstreamer-sys)
+      shell: pwsh
+      run: |
+        "C:\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+
     - name: Build Tauri (Windows)
       shell: pwsh
       env:
