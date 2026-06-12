@@ -130,6 +130,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Add MSYS2 to PATH
+        shell: pwsh
+        run: |
+          echo "C:\msys64\mingw64\bin" >> $env:GITHUB_PATH
+          echo "C:\msys64\usr\bin" >> $env:GITHUB_PATH
+
       - name: Build Tauri (macOS)
         run: pnpm tauri build
         env:
