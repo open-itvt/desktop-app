@@ -66,10 +66,18 @@ jobs:
       shell: pwsh
       run: pnpm install --frozen-lockfile
 
-    - name: Add MSYS2 to PATH (pkg-config for gstreamer-sys)
+    - name: Setup pkg-config for MSVC build
       shell: pwsh
       run: |
-        "C:\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+        $msysPkgConfig = "C:\msys64\mingw64\bin\pkgconf.exe"
+        if (Test-Path $msysPkgConfig) {
+          "PKG_CONFIG=$msysPkgConfig" | Out-File -FilePath $env:GITHUB_ENV -Append
+        }
+        $msysBin = "C:\msys64\mingw64\bin"
+        if (Test-Path $msysBin) {
+          $msysBin | Out-File -FilePath $env:GITHUB_PATH -Append
+        }
+        Get-ChildItem "C:\msys64\mingw64\bin\pkg*" -Name
 
     - name: Build Tauri (Windows)
       shell: pwsh
