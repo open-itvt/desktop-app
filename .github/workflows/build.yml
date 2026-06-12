@@ -91,10 +91,15 @@ jobs:
         run: |
           echo $env:PKG_CONFIG
 
-      - name: Find glib dependency
+      - name: Find glib 0.20
         shell: pwsh
         working-directory: src-tauri
-        run: cargo tree -i glib-sys
+        run: cargo tree -i glib-sys@0.20.10
+      
+      - name: Find glib 0.18
+        shell: pwsh
+        working-directory: src-tauri
+        run: cargo tree -i glib-sys@0.18.1
 
       - name: Build Tauri (Windows)
         shell: pwsh
