@@ -37,6 +37,19 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
 
+      # MUST HAVE - Instalacja zależności przez vcpkg
+      - name: Install dependencies (vcpkg)
+        run: |
+          vcpkg integrate install
+          vcpkg install glib:x64-windows gstreamer:x64-windows gst-plugins-base:x64-windows
+
+      # Ustawienie zmiennych środowiskowych dla vcpkg, aby Rust je widział
+      - name: Setup VCPKG environment
+        shell: bash
+        run: |
+          echo "VCPKG_ROOT=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_ENV
+          echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $GITHUB_ENV
+
       - name: Install dependencies
         run: pnpm install
 
@@ -45,6 +58,7 @@ jobs:
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          VCPKG_ROOT: ${{ env.VCPKG_INSTALLATION_ROOT }}
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
@@ -94,7 +108,7 @@ jobs:
           path: src-tauri/target/release/bundle/dmg/*.dmg
 
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
@@ -112,14 +126,26 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install system deps
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev \
-            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
-            gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-            gstreamer1.0-libav libgstreamer-plugins-bad1.0-dev
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libssl-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libfuse2 \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good \
+            gstreamer1.0-plugins-bad \
+            gstreamer1.0-plugins-ugly \
+            gstreamer1.0-libav \
+            libgstreamer1.0-dev
 
       - name: Install dependencies
         run: pnpm install
