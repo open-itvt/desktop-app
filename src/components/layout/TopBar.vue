@@ -7,6 +7,26 @@ import { useProfile } from '@/composables/useProfile'
 import { getWatchCount } from '@/composables/useWatchHistory'
 import { useFullscreen } from '@/composables/useFullscreen'
 import type { VodItem } from '@/types'
+import { useChannel } from '@/composables/useChannel'
+
+const { channel } = useChannel()
+const logoRed = ref(false)
+let logoInterval: ReturnType<typeof setTimeout> | undefined
+
+function onLogoEnter() {
+  if (channel.value === 'debug') {
+    logoRed.value = true
+    clearTimeout(logoInterval)
+    logoInterval = setTimeout(() => { logoRed.value = false }, 2000)
+  }
+}
+
+function onLogoLeave() {
+  if (channel.value === 'debug') {
+    clearTimeout(logoInterval)
+    logoRed.value = false
+  }
+}
 
 interface ChannelResult {
   type: 'channel'
@@ -185,7 +205,7 @@ function goBack() {
         <button v-if="route.path !== '/'" class="back-btn" @click="goBack">
           <ArrowLeftIcon class="back-icon" />
         </button>
-        <span class="logo" @click="router.push('/')">iTVT</span>
+        <span class="logo" :class="{ 'logo-debug': logoRed }" @mouseenter="onLogoEnter" @mouseleave="onLogoLeave" @click="router.push('/')">iTVT</span>
       </div>
       <div class="topbar-center">
         <div class="search-wrapper" @click="openSearch">
@@ -349,10 +369,12 @@ function goBack() {
   color: var(--text-main);
   letter-spacing: -0.5px;
   cursor: pointer;
-  transition: filter 0.2s;
+  transition: color 0.3s, filter 0.2s;
 }
 
 .logo:hover { filter: brightness(1.1); }
+
+.logo-debug { color: var(--accent-red) !important; }
 
 .back-btn {
   display: flex;
