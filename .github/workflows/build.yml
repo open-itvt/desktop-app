@@ -179,7 +179,65 @@ jobs:
             src-tauri/target/release/bundle/appimage/*.AppImage
 
 # =========================
-# RELEASE
+# PRERELEASE (push to main → debug pre-release)
+# =========================
+  prerelease:
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine debug version
+        id: version
+        run: |
+          BASE=$(node -p "require('./package.json').version")
+          FULL="${BASE}-debug.${GITHUB_RUN_NUMBER}"
+          echo "version=${FULL}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${FULL}" >> "$GITHUB_OUTPUT"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Rename artifacts with debug suffix
+        run: |
+          for f in itvt-windows/*; do
+            dir=$(dirname "$f")
+            base=$(basename "$f")
+            if echo "$base" | grep -q '\.exe$\|\.msi$\|\.zip$'; then
+              new=$(echo "$base" | sed 's/\.exe$/-debug.exe/;s/\.msi$/-debug.msi/;s/\.zip$/-debug.zip/')
+              mv "$f" "$dir/$new"
+            fi
+          done
+          for f in itvt-macos/*; do
+            mv "$f" "${f%.dmg}-debug.dmg"
+          done
+          for f in itvt-linux/*; do
+            if echo "$f" | grep -q '\.deb$'; then
+              mv "$f" "${f%.deb}-debug.deb"
+            elif echo "$f" | grep -q '\.AppImage$'; then
+              mv "$f" "${f%.AppImage}-debug.AppImage"
+            fi
+          done
+
+      - name: Create Pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: iTVT ${{ steps.version.outputs.tag }}
+          draft: false
+          prerelease: true
+          files: |
+            itvt-windows/*
+            itvt-windows-portable/*
+            itvt-macos/*
+            itvt-linux/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+# =========================
+# RELEASE (workflow_dispatch)
 # =========================
   release:
     if: github.event_name == 'workflow_dispatch'
