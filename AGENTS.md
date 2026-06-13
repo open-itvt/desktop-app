@@ -13,6 +13,14 @@
 - `deploy-dist-debug.sh` → deploy na **debug** branch repozytorium dist.
 - Nie robimy deploy na oba naraz, chyba że wyraźnie polecone.
 
+## Program data
+- Programy w MOCK_UPCOMING/MOCK_EPG/MOCK_CHANNELS_DATA muszą być spójne (te same tytuły, godziny).
+- Konwencja nazw: "Nocne Kino", nie "Kino Nocne".
+
+## Odysee / VOD
+- Slug Oliwier Stream: "o-stream", NIE "oliwier_stream".
+- Search w TopBar musi przeszukiwać kanały + EPG + VOD (Odysee API).
+
 ## Zasada ogólna
 Jeśli powiem "na debug" lub "dla debug", to znaczy:
 1. Commit na branch **debug** (nie main)

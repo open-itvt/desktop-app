@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MagnifyingGlassIcon, BellIcon, XMarkIcon, ArrowLeftIcon, TvIcon, PlayIcon, HeartIcon, ArrowsPointingOutIcon, ArrowsPointingInIcon } from '@heroicons/vue/24/outline'
 import { CHANNELS, MOCK_CHANNELS_DATA } from '@/composables/useMockData'
+import { searchVideos } from '@/composables/useOdysee'
 import { useProfile } from '@/composables/useProfile'
 import { getWatchCount } from '@/composables/useWatchHistory'
 import { useFullscreen } from '@/composables/useFullscreen'
@@ -113,7 +114,13 @@ async function doSearch() {
     }
   }
 
-  searchResults.value = [...channelResults, ...epgResults]
+  // Search VOD via Odysee API
+  let vodResults: VodItem[] = []
+  try {
+    vodResults = await searchVideos(q)
+  } catch { /* ignore */ }
+
+  searchResults.value = [...channelResults, ...epgResults, ...vodResults]
 
   // Store for schedule view highlighting
   localStorage.setItem('ivod_search_query', q)

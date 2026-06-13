@@ -5,7 +5,7 @@ export type ChannelName = typeof CHANNELS[number]
 
 export const CHANNEL_SLUGS: Record<ChannelName, string> = {
   'iTVT': 'itvt',
-  'Oliwier Stream': 'oliwier_stream',
+  'Oliwier Stream': 'o-stream',
   'iTVT Now': 'itvt2',
 }
 
@@ -41,7 +41,7 @@ export const MOCK_UPCOMING: Record<ChannelName, UpcomingProgram[]> = {
     { time: '20:00', title: 'Fast News IT' },
     { time: '21:00', title: 'Retrogaming Chiptune Session' },
     { time: '22:00', title: 'Debata Wieczorna' },
-    { time: '23:00', title: 'Kino Nocne' },
+    { time: '23:00', title: 'Nocne Kino' },
   ],
   'Oliwier Stream': [
     { time: '20:00', title: 'Oliwier na Żywo' },
