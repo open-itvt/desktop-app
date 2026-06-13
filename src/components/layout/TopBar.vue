@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { MagnifyingGlassIcon, BellIcon, XMarkIcon, ArrowLeftIcon, TvIcon } from '@heroicons/vue/24/outline'
-import { searchVideos } from '@/composables/useOdysee'
-import { CHANNELS, MOCK_CHANNELS_DATA } from '@/composables/useMockData'
+import { MagnifyingGlassIcon, BellIcon, XMarkIcon, ArrowLeftIcon, TvIcon, PlayIcon, HeartIcon } from '@heroicons/vue/24/outline'
+import { CHANNELS } from '@/composables/useMockData'
 import { useProfile } from '@/composables/useProfile'
 import type { VodItem } from '@/types'
 
@@ -39,70 +38,36 @@ onMounted(() => {
   updateClock()
   intervalId = setInterval(updateClock, 10000)
   window.addEventListener('open-search', openSearch)
+  document.addEventListener('click', closeProfileOnOutside)
 })
 
 onUnmounted(() => {
   if (intervalId) clearInterval(intervalId)
   window.removeEventListener('open-search', openSearch)
+  document.removeEventListener('click', closeProfileOnOutside)
 })
 
 const showSearch = ref(false)
 const showNotifications = ref(false)
+const showProfile = ref(false)
 const searchQuery = ref('')
 const searchResults = ref<SearchResult[]>([])
 const searching = ref(false)
 const searched = ref(false)
 
-watch(searchQuery, () => {
-  if (!searchQuery.value.trim()) {
-    searchResults.value = []
-    searched.value = false
-  }
-})
+// Profile stats
+const watchCount = ref(0)
+const favCount = ref(0)
 
-async function doSearch() {
-  const q = searchQuery.value.trim()
-  if (!q) return
-
-  searching.value = true
-  searched.value = true
-
-  const ql = q.toLowerCase()
-  const channelResults: ChannelResult[] = CHANNELS
-    .filter(ch => ch.toLowerCase().includes(ql))
-    .map(ch => ({ type: 'channel' as const, name: ch, slug: ch.toLowerCase().replace(/\s+/g, '-') }))
-
-  // Search EPG programs
-  const epgResults: EpgProgramResult[] = []
-  for (const ch of MOCK_CHANNELS_DATA) {
-    for (const prog of ch.programs) {
-      if (prog.title.toLowerCase().includes(ql) || prog.category.toLowerCase().includes(ql)) {
-        epgResults.push({
-          type: 'epg',
-          title: prog.title,
-          channel: ch.name,
-          time: prog.time,
-          category: prog.category,
-        })
-      }
-    }
-  }
-
-  let vodResults: VodItem[] = []
+function loadProfileStats() {
   try {
-    vodResults = await searchVideos(q)
+    const raw = localStorage.getItem('ivod_watch_history')
+    if (raw) { const list = JSON.parse(raw); watchCount.value = list.length }
   } catch { /* ignore */ }
-
-  searchResults.value = [...channelResults, ...epgResults, ...vodResults]
-  searching.value = false
-
-  // Store search term for highlighting in ScheduleView
-  localStorage.setItem('ivod_search_query', q)
-  window.dispatchEvent(new CustomEvent('search-highlight', { detail: q }))
-}
-
-function onSearchKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter') doSearch()
+  try {
+    const raw = localStorage.getItem('ivod_bookmarks')
+    if (raw) { const ids = JSON.parse(raw); favCount.value = ids.length }
+  } catch { /* ignore */ }
 }
 
 function openSearch() {
@@ -119,6 +84,22 @@ function closeSearch() {
   searchQuery.value = ''
   localStorage.removeItem('ivod_search_query')
   window.dispatchEvent(new CustomEvent('search-highlight', { detail: '' }))
+}
+
+function onSearchKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter') doSearch()
+}
+
+async function doSearch() {
+  const q = searchQuery.value.trim()
+  if (!q) return
+  searching.value = true
+  searched.value = true
+  // Simple fallback — just store for schedule view
+  localStorage.setItem('ivod_search_query', q)
+  window.dispatchEvent(new CustomEvent('search-highlight', { detail: q }))
+  searchResults.value = []
+  searching.value = false
 }
 
 function isVod(r: SearchResult): r is VodItem { return 'videoName' in r }
@@ -151,10 +132,20 @@ function goToResult(r: SearchResult) {
 
 function toggleNotifications() {
   showNotifications.value = !showNotifications.value
+  showProfile.value = false
 }
 
-function goToProfile() {
-  router.push('/profile')
+function toggleProfile() {
+  showProfile.value = !showProfile.value
+  if (showProfile.value) loadProfileStats()
+  showNotifications.value = false
+}
+
+function closeProfileOnOutside(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  if (showProfile.value && !target.closest('.avatar-wrapper')) {
+    showProfile.value = false
+  }
 }
 
 function goBack() {
@@ -183,7 +174,31 @@ function goBack() {
         <button class="icon-btn" @click="toggleNotifications">
           <BellIcon class="icon" />
         </button>
-        <div class="avatar" @click="goToProfile">{{ profile.initial }}</div>
+        <div class="avatar-wrapper">
+          <div class="avatar" @click="toggleProfile">{{ profile.initial }}</div>
+
+          <Transition name="ctx">
+            <div v-if="showProfile" class="profile-dropdown">
+              <div class="pd-header">
+                <div class="pd-avatar">{{ profile.initial }}</div>
+                <div class="pd-name">{{ profile.nickname }}</div>
+              </div>
+              <div class="pd-stats">
+                <div class="pd-stat">
+                  <PlayIcon class="pd-stat-icon" />
+                  <span class="pd-stat-val">{{ watchCount }}</span>
+                  <span class="pd-stat-lbl">Odtworzone</span>
+                </div>
+                <div class="pd-stat">
+                  <HeartIcon class="pd-stat-icon" />
+                  <span class="pd-stat-val">{{ favCount }}</span>
+                  <span class="pd-stat-lbl">Zapisane</span>
+                </div>
+              </div>
+              <button class="pd-btn" @click="showProfile = false; router.push('/profile')">Zobacz więcej</button>
+            </div>
+          </Transition>
+        </div>
       </div>
     </header>
 
@@ -632,6 +647,61 @@ function goBack() {
 .notif-title { font-size: 14px; font-weight: 600; color: var(--text-main); }
 .notif-desc { font-size: 12px; color: var(--text-muted); }
 .notif-time { font-size: 11px; color: var(--text-dark); }
+
+/* Profile dropdown */
+.avatar-wrapper { position: relative; }
+
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 10000;
+  min-width: 200px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.pd-header { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+.pd-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--accent-red); color: #fff;
+  font-size: 24px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.pd-name { font-size: 15px; font-weight: 600; color: var(--text-main); }
+
+.pd-stats { display: flex; gap: 20px; width: 100%; justify-content: center; }
+
+.pd-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+
+.pd-stat-icon { width: 18px; height: 18px; color: var(--accent-red); }
+.pd-stat-val { font-size: 18px; font-weight: 700; color: var(--text-main); }
+.pd-stat-lbl { font-size: 10px; color: var(--text-muted); }
+
+.pd-btn {
+  width: 100%; padding: 8px;
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-main);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: filter 0.2s;
+  text-align: center;
+}
+
+.pd-btn:hover { filter: brightness(1.1); }
+
+.ctx-enter-active { transition: opacity 0.15s ease, transform 0.12s ease; }
+.ctx-leave-active { transition: opacity 0.1s ease; }
+.ctx-enter-from { opacity: 0; transform: translateY(-6px) scale(0.95); }
+.ctx-leave-to { opacity: 0; transform: translateY(-4px) scale(0.95); }
 
 .modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
 .modal-enter-from, .modal-leave-to { opacity: 0; }
