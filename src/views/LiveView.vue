@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { invoke } from '@tauri-apps/api/core'
 import {
   ArrowLeftIcon,
   ArrowsPointingOutIcon,
@@ -18,6 +17,7 @@ import {
   CHANNEL_HLS,
 } from '@/composables/useMockData'
 import type { ChannelName } from '@/composables/useMockData'
+import { startPlayer, stopPlayer, getStreamUrl } from '@/composables/useBackend'
 
 const route = useRoute()
 const router = useRouter()
@@ -35,18 +35,16 @@ const playing = ref(true)
 const fullscreen = ref(false)
 const volume = ref(50)
 const muted = ref(false)
-let activePort: number | null = null
 
 async function startStream() {
   loading.value = true
   const hlsUrl = CHANNEL_HLS[channelName.value]
-  if (!hlsUrl) return
+  if (!hlsUrl) { loading.value = false; return }
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const port = await invoke<number>('start_player', { url: hlsUrl })
-      activePort = port
-      streamUrl.value = `http://127.0.0.1:${port}/stream`
+      await startPlayer(hlsUrl)
+      streamUrl.value = getStreamUrl()
       loading.value = false
       return
     } catch (e) {
@@ -58,11 +56,8 @@ async function startStream() {
 }
 
 async function stopStream() {
-  if (activePort !== null) {
-    try { await invoke('stop_player') } catch (_) {}
-    activePort = null
-    streamUrl.value = ''
-  }
+  await stopPlayer()
+  streamUrl.value = ''
 }
 
 watch(channelName, () => {
