@@ -2,6 +2,7 @@ use std::panic;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::time::Duration;
 
 use tiny_http::{Header, Response, ResponseBox, Server, StatusCode};
 
@@ -255,7 +256,7 @@ fn handle_request(mut req: tiny_http::Request, player: &Arc<Mutex<Option<HlsPlay
         return;
     }
 
-    let mut res = match (method.as_str(), url.as_str()) {
+    let res = match (method.as_str(), url.as_str()) {
         ("GET", "/health") => json(200, r#"{"status":"ok"}"#),
         ("GET", "/api/status") => json(200, platform_json()),
 
