@@ -21,8 +21,8 @@ export const CHANNEL_HLS: Record<ChannelName, string> = {
 export const MOCK_CHANNEL_DATA: Record<ChannelName, Channel> = {
   'iTVT': {
     name: 'iTVT',
-    currentProgram: 'Wydarzenia Dnia',
-    timeRange: '19:00 - 20:00',
+    currentProgram: 'Kodujemy z Klubuntu - znów damy radę',
+    timeRange: '19:00 - 21:00',
   },
   'Oliwier Stream': {
     name: 'Oliwier Stream',
@@ -38,10 +38,9 @@ export const MOCK_CHANNEL_DATA: Record<ChannelName, Channel> = {
 
 export const MOCK_UPCOMING: Record<ChannelName, UpcomingProgram[]> = {
   'iTVT': [
-    { time: '20:00', title: 'Fast News IT' },
-    { time: '21:00', title: 'Retrogaming Chiptune Session' },
-    { time: '22:00', title: 'Debata Wieczorna' },
-    { time: '23:00', title: 'Kino Nocne' },
+    { time: '21:00', title: 'Fast News IT' },
+    { time: '22:00', title: 'Retrogaming Chiptune Session' },
+    { time: '23:00', title: 'Nocne podsumowanie dnia' },
   ],
   'Oliwier Stream': [
     { time: '20:00', title: 'Oliwier na Żywo' },
@@ -51,9 +50,9 @@ export const MOCK_UPCOMING: Record<ChannelName, UpcomingProgram[]> = {
   ],
   'iTVT Now': [
     { time: '19:30', title: 'Wiadomości' },
-    { time: '21:00', title: 'Kino Wieczorne' },
+    { time: '21:00', title: 'Jak powstało iTVT - Dokument' },
     { time: '23:30', title: 'Serwis Nocny' },
-    { time: '01:00', title: 'Retro Kino' },
+    { time: '01:00', title: 'Kino czasu' },
   ],
 }
 
