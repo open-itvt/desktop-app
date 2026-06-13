@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     tags:
-      - "appv*-debug"
+      - "v*-debug"
       - "v*"
   workflow_dispatch:
     inputs:
@@ -59,7 +59,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: itvt-windows
-          path: staging/windows/*
+          path: staging/windows/*/*
 
   build-macos-arm:
     runs-on: macos-latest
@@ -83,7 +83,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: itvt-macos-arm
-          path: staging/macos/*
+          path: staging/macos/*/*
 
   build-macos-intel:
     runs-on: macos-15-intel
@@ -107,7 +107,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: itvt-macos-intel
-          path: staging/macos/*
+          path: staging/macos/*/*
 
   build-linux:
     runs-on: ubuntu-22.04
@@ -137,7 +137,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: itvt-linux-x86
-          path: staging/linux-x86/*
+          path: staging/linux-x86/*/*
 
   build-linux-arm-22:
     runs-on: ubuntu-22.04-arm
@@ -155,9 +155,9 @@ jobs:
             librsvg2-dev libfuse2 libunwind-dev \
             libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
             gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
-            gstreamer1.0-plugins-ugly gstreamer1.0-libav || true
+            gstreamer1.0-plugins-ugly gstreamer1.0-libav
       - run: pnpm install --frozen-lockfile
-      - run: pnpm tauri build || true
+      - run: pnpm tauri build
       - name: Stage Linux ARM22 artifacts
         run: |
           mkdir -p staging/linux-arm22/deb staging/linux-arm22/appimage
@@ -166,7 +166,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: itvt-linux-arm22
-          path: staging/linux-arm22/*
+          path: staging/linux-arm22/*/*
 
   build-linux-arm-24:
     runs-on: ubuntu-24.04-arm
@@ -184,9 +184,9 @@ jobs:
             librsvg2-dev libfuse2 libunwind-dev \
             libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
             gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
-            gstreamer1.0-plugins-ugly gstreamer1.0-libav || true
+            gstreamer1.0-plugins-ugly gstreamer1.0-libav
       - run: pnpm install --frozen-lockfile
-      - run: pnpm tauri build || true
+      - run: pnpm tauri build
       - name: Stage Linux ARM24 artifacts
         run: |
           mkdir -p staging/linux-arm24/deb staging/linux-arm24/appimage
@@ -195,36 +195,47 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: itvt-linux-arm24
-          path: staging/linux-arm24/*
+          path: staging/linux-arm24/*/*
 
   release:
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     needs: [build-windows, build-macos-arm, build-macos-intel, build-linux, build-linux-arm-22, build-linux-arm-24]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
-      - name: Determine prrelease flag
+        with:
+          path: artifacts
+
+      - name: Determine tag and prerelease
         id: meta
         run: |
-          TAG="${{ github.ref_name }}"
-          if echo "$TAG" | grep -q '\-debug'; then
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-          else
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            echo "tag_name=v$VERSION" >> "$GITHUB_OUTPUT"
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          else
+            TAG="${{ github.ref_name }}"
+            echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
+            if echo "$TAG" | grep -q '\-debug'; then
+              echo "prerelease=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            fi
           fi
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          tag_name: ${{ steps.meta.outputs.tag_name }}
+          name: ${{ steps.meta.outputs.tag_name }}
           prerelease: ${{ steps.meta.outputs.prerelease }}
           generate_release_notes: true
           files: |
-            itvt-windows/*
-            itvt-macos-arm/*
-            itvt-macos-intel/*
-            itvt-linux-x86/*
-            itvt-linux-arm22/*
-            itvt-linux-arm24/*
+            artifacts/itvt-windows/**/*
+            artifacts/itvt-macos-arm/**/*
+            artifacts/itvt-macos-intel/**/*
+            artifacts/itvt-linux-x86/**/*
+            artifacts/itvt-linux-arm22/**/*
+            artifacts/itvt-linux-arm24/**/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
