@@ -55,6 +55,9 @@
     var btn = document.querySelector('.btn');
     var hint = document.getElementById('hint');
     var ua = navigator.userAgent;
+    var params = new URLSearchParams(window.location.search);
+    var targetPath = params.get('path') || '';
+    var appLink = 'itvt://open' + (targetPath ? '?path=' + encodeURIComponent(targetPath) : '');
 
     // Detect OS for default download button
     var downloadUrl = 'https://github.com/open-itvt/desktop-app-dist/releases';
@@ -66,10 +69,12 @@
       el.href = downloadUrl;
     });
 
+    btn.href = appLink;
+
     // Try to open the app via itvt:// protocol
     function tryOpen() {
       var start = Date.now();
-      window.location.href = 'itvt://open';
+      window.location.href = appLink;
 
       // If app doesn't open after 2s, show download hint
       setTimeout(function() {
@@ -80,7 +85,6 @@
     }
 
     btn.addEventListener('click', function(e) {
-      // Don't prevent default — let the link be followed
       tryOpen();
     });
 
