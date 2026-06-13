@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { MagnifyingGlassIcon, BellIcon, XMarkIcon, ArrowLeftIcon, TvIcon, PlayIcon, HeartIcon } from '@heroicons/vue/24/outline'
+import { MagnifyingGlassIcon, BellIcon, XMarkIcon, ArrowLeftIcon, TvIcon, PlayIcon, HeartIcon, ArrowsPointingOutIcon, ArrowsPointingInIcon } from '@heroicons/vue/24/outline'
 import { CHANNELS } from '@/composables/useMockData'
 import { useProfile } from '@/composables/useProfile'
+import { getWatchCount } from '@/composables/useWatchHistory'
+import { useFullscreen } from '@/composables/useFullscreen'
 import type { VodItem } from '@/types'
 
 interface ChannelResult {
@@ -28,6 +30,7 @@ const { profile } = useProfile()
 
 const clock = ref('')
 let intervalId: ReturnType<typeof setInterval> | undefined
+const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
 
 function updateClock() {
   const now = new Date()
@@ -60,10 +63,7 @@ const watchCount = ref(0)
 const favCount = ref(0)
 
 function loadProfileStats() {
-  try {
-    const raw = localStorage.getItem('ivod_watch_history')
-    if (raw) { const list = JSON.parse(raw); watchCount.value = list.length }
-  } catch { /* ignore */ }
+  watchCount.value = getWatchCount()
   try {
     const raw = localStorage.getItem('ivod_bookmarks')
     if (raw) { const ids = JSON.parse(raw); favCount.value = ids.length }
@@ -148,6 +148,11 @@ function closeProfileOnOutside(e: MouseEvent) {
   }
 }
 
+function goToProfile() {
+  showProfile.value = false
+  router.push('/profile')
+}
+
 function goBack() {
   if (window.history.length > 1) router.back()
   else router.push('/')
@@ -171,6 +176,10 @@ function goBack() {
       </div>
       <div class="topbar-right">
         <span class="clock">{{ clock }}</span>
+        <button class="icon-btn" @click="toggleFullscreen" :title="isFullscreen ? 'Pełny ekran (F11)' : 'Pełny ekran (F11)'">
+          <ArrowsPointingOutIcon v-if="!isFullscreen" class="icon" />
+          <ArrowsPointingInIcon v-else class="icon" />
+        </button>
         <button class="icon-btn" @click="toggleNotifications">
           <BellIcon class="icon" />
         </button>
@@ -187,7 +196,7 @@ function goBack() {
                 <div class="pd-stat">
                   <PlayIcon class="pd-stat-icon" />
                   <span class="pd-stat-val">{{ watchCount }}</span>
-                  <span class="pd-stat-lbl">Odtworzone</span>
+                  <span class="pd-stat-lbl">Obejrzane</span>
                 </div>
                 <div class="pd-stat">
                   <HeartIcon class="pd-stat-icon" />
@@ -195,7 +204,7 @@ function goBack() {
                   <span class="pd-stat-lbl">Zapisane</span>
                 </div>
               </div>
-              <button class="pd-btn" @click="showProfile = false; router.push('/profile')">Zobacz więcej</button>
+              <button class="pd-btn" @click="goToProfile">Zobacz więcej</button>
             </div>
           </Transition>
         </div>

@@ -204,20 +204,18 @@ function cancelChannel() {
     <Teleport to="body">
       <Transition name="modal">
         <div v-if="showRestartPrompt" class="modal-overlay" @click.self="cancelChannel">
-          <div class="modal-card" style="max-width:400px;">
+          <div class="modal-card restart-card">
             <div class="modal-header">
-              <h2 class="modal-title" style="color:var(--accent-red);">Zmień kanał</h2>
+              <h2 class="restart-title">Zmień kanał</h2>
               <button class="modal-close" @click="cancelChannel">
                 <XMarkIcon class="close-icon" />
               </button>
             </div>
-            <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
-              <p style="font-size:14px;color:var(--text-main);line-height:1.5;">
-                Zmiana kanału na <strong>{{ pendingChannel === 'debug' ? 'Debug' : 'Stabilny' }}</strong> wymaga ponownego uruchomienia aplikacji. Kontynuować?
-              </p>
-              <div style="display:flex;gap:8px;">
-                <button class="text-btn" style="flex:1;text-align:center;padding:10px;" @click="cancelChannel">Anuluj</button>
-                <button class="text-btn" style="flex:1;text-align:center;padding:10px;background:var(--accent-red);color:#fff;border-color:var(--accent-red);" @click="confirmChannel">Uruchom ponownie</button>
+            <div class="restart-body">
+              <p class="restart-text">Zmiana kanału na <strong>{{ pendingChannel === 'debug' ? 'Debug' : 'Stabilny' }}</strong> wymaga ponownego uruchomienia aplikacji. Kontynuować?</p>
+              <div class="restart-actions">
+                <button class="restart-btn cancel" @click="cancelChannel">Anuluj</button>
+                <button class="restart-btn confirm" @click="confirmChannel">Uruchom ponownie</button>
               </div>
             </div>
           </div>
@@ -276,4 +274,15 @@ function cancelChannel() {
 .privacy-footer { margin-top: 16px; font-size: 11px; color: var(--text-dark); text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 12px; }
 .modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
 .modal-enter-from, .modal-leave-to { opacity: 0; }
+
+/* Restart modal */
+.restart-card { max-width: 400px; }
+.restart-title { font-size: 20px; font-weight: 700; color: var(--accent-red); }
+.restart-body { display: flex; flex-direction: column; gap: 16px; }
+.restart-text { font-size: 14px; color: var(--text-main); line-height: 1.5; }
+.restart-actions { display: flex; gap: 8px; }
+.restart-btn { flex: 1; padding: 10px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: filter 0.2s; }
+.restart-btn.cancel { border: 1px solid var(--border-subtle); background: transparent; color: var(--text-muted); }
+.restart-btn.confirm { border: 1px solid var(--accent-red); background: var(--accent-red); color: #fff; }
+.restart-btn:hover { filter: brightness(1.1); }
 </style>
