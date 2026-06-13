@@ -250,7 +250,13 @@ fn handle_request(mut req: tiny_http::Request, player: &Arc<Mutex<Option<HlsPlay
     let url = req.url().to_string();
     let method = req.method().to_string();
 
-    let res: ResponseBox = match (method.as_str(), url.as_str()) {
+    // CORS preflight — respond immediately
+    if method == "OPTIONS" {
+        let _ = req.respond(cors_ok());
+        return;
+    }
+
+    let mut res = match (method.as_str(), url.as_str()) {
         ("GET", "/health") => json(200, r#"{"status":"ok"}"#),
         ("GET", "/api/status") => json(200, platform_json()),
 
@@ -287,21 +293,21 @@ fn handle_request(mut req: tiny_http::Request, player: &Arc<Mutex<Option<HlsPlay
             }
         }
 
-        #[cfg(target_os = "linux")]
-        ("GET", p) if p == "/stream" || p.starts_with("/stream?") => {
-            if let Ok(guard) = player.lock() {
-                if let Some(ref hls) = *guard {
-                    if hls.is_running() { let res = stream_mjpeg(hls); let _ = req.respond(res); return; }
-                }
+    #[cfg(target_os = "linux")]
+    ("GET", p) if p == "/stream" || p.starts_with("/stream?") => {
+        if let Ok(guard) = player.lock() {
+            if let Some(ref hls) = *guard {
+                if hls.is_running() { let r = stream_mjpeg(hls); let _ = req.respond(r); return; }
             }
-            json(503, r#"{"error":"player not running"}"#)
         }
+        json(503, r#"{"error":"player not running"}"#)
+    }
 
-        #[cfg(not(target_os = "linux"))]
-        ("GET", p) if p == "/stream" || p.starts_with("/stream?") =>
-            json(503, r#"{"error":"streaming not supported on this platform"}"#),
+    #[cfg(not(target_os = "linux"))]
+    ("GET", p) if p == "/stream" || p.starts_with("/stream?") =>
+        json(503, r#"{"error":"streaming not supported on this platform"}"#),
 
-        _ => json(404, r#"{"error":"not found"}"#),
+    _ => json(404, r#"{"error":"not found"}"#),
     };
     let _ = req.respond(res);
 }
@@ -312,8 +318,21 @@ fn handle_request(mut req: tiny_http::Request, player: &Arc<Mutex<Option<HlsPlay
 fn gstreamer_init() { std::thread::spawn(|| { let _ = gstreamer::init(); }); }
 
 fn json(status: u16, body: &str) -> ResponseBox {
-    let h = vec![Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]).unwrap()];
+    let mut h = Vec::new();
+    h.push(Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]).unwrap());
+    h.push(Header::from_bytes(&b"Access-Control-Allow-Origin"[..], &b"*"[..]).unwrap());
+    h.push(Header::from_bytes(&b"Access-Control-Allow-Methods"[..], &b"GET, POST, OPTIONS"[..]).unwrap());
+    h.push(Header::from_bytes(&b"Access-Control-Allow-Headers"[..], &b"Content-Type"[..]).unwrap());
     Response::new(StatusCode(status), h, Box::new(std::io::Cursor::new(body.as_bytes().to_vec())), None, None).boxed()
+}
+
+fn cors_ok() -> ResponseBox {
+    let mut h = Vec::new();
+    h.push(Header::from_bytes(&b"Content-Type"[..], &b"text/plain"[..]).unwrap());
+    h.push(Header::from_bytes(&b"Access-Control-Allow-Origin"[..], &b"*"[..]).unwrap());
+    h.push(Header::from_bytes(&b"Access-Control-Allow-Methods"[..], &b"GET, POST, OPTIONS"[..]).unwrap());
+    h.push(Header::from_bytes(&b"Access-Control-Allow-Headers"[..], &b"Content-Type"[..]).unwrap());
+    Response::new(StatusCode(200), h, Box::new(std::io::Cursor::new(Vec::new())), Some(0), None).boxed()
 }
 
 fn base64_encode(bytes: &[u8]) -> String {
