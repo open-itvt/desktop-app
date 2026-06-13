@@ -188,6 +188,7 @@ mod stub {
         _frame: Arc<Mutex<Vec<u8>>>,
     }
 
+    #[allow(dead_code)]
     impl HlsPlayer {
         pub fn new() -> Self {
             HlsPlayer { running: Arc::new(AtomicBool::new(false)), _frame: Arc::new(Mutex::new(Vec::new())) }
