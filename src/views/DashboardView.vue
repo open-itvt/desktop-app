@@ -6,7 +6,6 @@ import EpgBar from '@/components/layout/EpgBar.vue'
 import {
   MOCK_CHANNEL_DATA,
   MOCK_UPCOMING,
-  MOCK_EPG,
   CHANNELS,
 } from '@/composables/useMockData'
 import type { ChannelName } from '@/composables/useMockData'
@@ -51,7 +50,7 @@ const currentChannel = computed(() => MOCK_CHANNEL_DATA[activeChannel.value])
       </div>
     </div>
     <VodCarousel />
-    <EpgBar :entries="MOCK_EPG[activeChannel]" :channel="activeChannel" />
+    <EpgBar :channel="activeChannel" />
   </div>
 </template>
 
