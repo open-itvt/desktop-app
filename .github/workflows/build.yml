@@ -55,7 +55,7 @@ jobs:
             src-tauri/target/release/bundle/msi/*.msi
             iTVT-portable-win64.zip
 
-  build-macos:
+  build-macos-arm:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -72,7 +72,27 @@ jobs:
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       - uses: actions/upload-artifact@v4
         with:
-          name: itvt-macos
+          name: itvt-macos-arm
+          path: src-tauri/target/release/bundle/dmg/*.dmg
+
+  build-macos-intel:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@9 --activate
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: x86_64-apple-darwin }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm tauri build
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: itvt-macos-intel
           path: src-tauri/target/release/bundle/dmg/*.dmg
 
   build-linux:
