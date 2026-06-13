@@ -32,7 +32,7 @@ const channelName = computed(() => {
 const channel = computed(() => MOCK_CHANNEL_DATA[channelName.value])
 const streamUrl = ref('')
 const loading = ref(true)
-const playing = ref(true)
+const playing = ref(false)
 const fullscreen = ref(false)
 const volume = ref(50)
 const muted = ref(false)
@@ -90,7 +90,9 @@ onUnmounted(() => {
 function togglePlay() {
   playing.value = !playing.value
   if (useEmbed.value) {
-    postMsg('togglePlay')
+    // When playing becomes true, tell the embed to start
+    if (playing.value) postMsg('play')
+    else postMsg('pause')
   }
 }
 
@@ -138,30 +140,35 @@ watch(volume, (v) => {
     </div>
 
     <div class="player-wrap">
+      <!-- iframe always loads but stays hidden-paused until user clicks play -->
       <iframe
-        v-if="streamUrl && playing && useEmbed"
+        v-if="streamUrl && useEmbed"
         ref="iframeRef"
         :src="embedUrl"
         class="player-iframe"
+        :class="{ paused: !playing }"
         allowfullscreen
         allow="autoplay; encrypted-media; fullscreen"
       />
       <img
-        v-else-if="streamUrl && playing"
+        v-else-if="streamUrl"
         :src="streamUrl"
         class="player-stream"
+        :class="{ paused: !playing }"
         alt="Live stream"
       />
       <div v-else-if="loading" class="player-overlay-content">
         <div class="spinner" />
         <span class="overlay-text">Ładowanie strumienia...</span>
       </div>
-      <div v-else-if="!playing" class="player-overlay-content">
-        <PlayIcon class="big-icon" />
-        <span class="overlay-text">Wstrzymano</span>
-      </div>
       <div v-else class="player-overlay-content">
         <span class="overlay-text">Brak strumienia</span>
+      </div>
+
+      <!-- Play overlay — shown when player is loaded but paused -->
+      <div v-if="streamUrl && !playing" class="play-overlay" @click="togglePlay">
+        <PlayIcon class="big-icon" />
+        <span class="overlay-text">Naciśnij play, aby odtworzyć</span>
       </div>
     </div>
 
@@ -281,6 +288,26 @@ watch(volume, (v) => {
 
 .player-stream { width: 100%; height: 100%; object-fit: contain; }
 .player-iframe { width: 100%; height: 100%; border: none; }
+.player-iframe.paused { pointer-events: none; }
+.player-stream.paused { filter: brightness(0.4); }
+
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.25s;
+}
+
+.play-overlay:hover {
+  background: rgba(0,0,0,0.25);
+}
 
 .player-overlay-content {
   display: flex;
