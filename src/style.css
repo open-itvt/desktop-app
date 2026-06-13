@@ -77,13 +77,3 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
-
-/* Fullscreen mode — hide topbar + sidebar */
-.itvt-fullscreen .app-topbar,
-.itvt-fullscreen .app-sidebar {
-  display: none;
-}
-.itvt-fullscreen .app-main {
-  grid-row: 1 / -1;
-  grid-column: 1 / -1;
-}

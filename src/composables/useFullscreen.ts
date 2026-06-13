@@ -15,7 +15,6 @@ export function useFullscreen() {
 
   function onFsChange() {
     isFullscreen.value = !!document.fullscreenElement
-    document.body.classList.toggle('itvt-fullscreen', isFullscreen.value)
   }
 
   onMounted(() => {

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { PlayIcon, BookmarkIcon, BookmarkSlashIcon, CalendarDaysIcon, EyeIcon } from '@heroicons/vue/24/outline'
 import type { VodItem } from '@/types'
 import { useCachedThumbnail } from '@/composables/useThumbnailCache'
+import { recordWatch } from '@/composables/useWatchHistory'
 
 const props = defineProps<{
   item: VodItem
@@ -45,6 +46,7 @@ function toggleBookmark() {
 }
 
 function openPlayer() {
+  recordWatch(`vod:${props.item.id}`)
   router.push(`/watch/${encodeURIComponent(props.item.videoName)}/${encodeURIComponent(props.item.claimId)}`)
 }
 </script>

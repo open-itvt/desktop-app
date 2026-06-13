@@ -1,39 +1,42 @@
 import { onMounted, onUnmounted } from 'vue'
 
 let checkInterval: ReturnType<typeof setInterval> | undefined
+let prevProxyOk = true
 
-function toggle(force?: boolean) {
+function toggle(show: boolean) {
   const el = document.getElementById('offline')
-  if (!el) return
-  const show = force !== undefined ? force : !navigator.onLine
-  el.classList.toggle('show', show)
+  if (el) el.classList.toggle('show', show)
 }
 
 export function useConnectivity() {
   onMounted(() => {
-    window.addEventListener('offline', () => toggle(true))
-    window.addEventListener('online', () => toggle(false))
+    // The inline script in index.html handles browser offline/online via navigator.onLine
+    // This composable additionally checks proxy availability
 
-    // Also check proxy connectivity periodically
     checkInterval = setInterval(async () => {
       const params = new URLSearchParams(window.location.search)
       const port = params.get('proxy')
-      if (port) {
-        try {
-          const res = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(3000) })
-          toggle(res.ok ? false : true)
-        } catch {
-          toggle(true)
+      if (!port) return // no proxy mode — rely on browser events
+
+      try {
+        const res = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(2000) })
+        const proxyOk = res.ok
+        if (proxyOk && !prevProxyOk) {
+          toggle(false) // proxy recovered
         }
-      } else {
-        toggle()
+        prevProxyOk = proxyOk
+      } catch {
+        // Proxy unreachable
+        if (prevProxyOk) {
+          toggle(true) // proxy just went down
+        }
+        prevProxyOk = false
       }
-    }, 5000)
+    }, 8000) // check every 8s, less aggressive
   })
 
   onUnmounted(() => {
-    window.removeEventListener('offline', () => toggle(true))
-    window.removeEventListener('online', () => toggle(false))
     if (checkInterval) clearInterval(checkInterval)
+    prevProxyOk = true
   })
 }

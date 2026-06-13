@@ -9,12 +9,12 @@ import VodCard from '@/components/vod/VodCard.vue'
 import { CHANNELS } from '@/composables/useMockData'
 import { fetchChannelVideos } from '@/composables/useOdysee'
 import { useProfile } from '@/composables/useProfile'
+import { getWatchCount } from '@/composables/useWatchHistory'
 import type { VodItem } from '@/types'
 
 const { profile, save: saveProfile } = useProfile()
 
 const BKS_KEY = 'ivod_bookmarks'
-const WATCH_KEY = 'ivod_watch_history'
 
 const editMode = ref(false)
 const editNickname = ref('')
@@ -58,13 +58,7 @@ async function loadBookmarks() {
 }
 
 function loadHistory() {
-  try {
-    const raw = localStorage.getItem(WATCH_KEY)
-    if (raw) {
-      const list: { title: string; time: string }[] = JSON.parse(raw)
-      watchCount.value = list.length
-    }
-  } catch { /* ignore */ }
+  watchCount.value = getWatchCount()
 }
 
 const recentChannels = computed(() => CHANNELS.slice(0, 3))
@@ -94,7 +88,7 @@ const recentChannels = computed(() => CHANNELS.slice(0, 3))
           <div class="stat">
             <PlayCircleIcon class="stat-icon" />
             <span class="stat-value">{{ watchCount }}</span>
-            <span class="stat-label">Odtworzone</span>
+            <span class="stat-label">Obejrzane</span>
           </div>
           <div class="stat">
             <HeartIcon class="stat-icon" />
