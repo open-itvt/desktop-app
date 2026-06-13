@@ -13,8 +13,10 @@ function read(): Channel {
 
 const channel = ref<Channel>(read())
 
+// Update document title on change
 watch(channel, (ch) => {
   try { localStorage.setItem(CHANNEL_KEY, ch) } catch { /* ignore */ }
+  document.title = ch === 'debug' ? 'iTVT (Debug)' : 'iTVT - Desktop App'
 })
 
 export function useChannel() {

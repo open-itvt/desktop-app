@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { SunIcon, MoonIcon, PaintBrushIcon, BellIcon, GlobeAltIcon, ShieldCheckIcon, InformationCircleIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 import SectionHeader from '@/components/ui/SectionHeader.vue'
 import { useTheme } from '@/composables/useTheme'
@@ -13,6 +13,7 @@ const autoplay = ref(true)
 const showPrivacy = ref(false)
 const showRestartPrompt = ref(false)
 const showClearPrompt = ref(false)
+const versionLabel = computed(() => channel.value === 'debug' ? '2.0.0 (Debug)' : '2.0.0')
 let pendingChannel: 'stable' | 'debug' | null = null
 
 function switchChannel(ch: 'stable' | 'debug') {
@@ -169,7 +170,7 @@ function clearCache() {
           <div class="setting-info">
             <span class="setting-label">Wersja aplikacji</span>
           </div>
-          <span class="setting-value">2.0.0</span>
+          <span class="setting-value">{{ versionLabel }}</span>
         </div>
       </section>
 
