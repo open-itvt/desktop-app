@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <script>
       var ua = navigator.userAgent;
-      if (ua.indexOf('iTVT Desktop App') === -1 && window.location.search.indexOf('proxy=') === -1) {
+      var path = window.location.pathname;
+      if (path !== '/apps' && ua.indexOf('iTVT Desktop App') === -1 && window.location.search.indexOf('proxy=') === -1) {
         window.location.replace('https://vod.itvt.xyz');
       }
     </script>

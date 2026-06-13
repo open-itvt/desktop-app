@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iTVT — Pobierz aplikację</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #09090b; color: #f4f4f5;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; text-align: center; gap: 24px; padding: 32px;
+    }
+    .logo { font-size: 48px; font-weight: 800; letter-spacing: -1px; color: #a81414; }
+    h1 { font-size: 22px; font-weight: 700; }
+    p { font-size: 14px; color: #71717a; max-width: 400px; line-height: 1.5; }
+    .btn {
+      display: inline-block; padding: 12px 28px;
+      background: #a81414; color: #fff; border-radius: 8px;
+      font-size: 15px; font-weight: 600; text-decoration: none;
+      cursor: pointer; transition: filter 0.2s;
+    }
+    .btn:hover { filter: brightness(1.15); }
+    .btn-outline {
+      background: transparent; border: 1px solid #202023; color: #a1a1aa;
+    }
+    .btn-outline:hover { background: #1c1c1f; }
+    .links { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .footer { font-size: 12px; color: #555555; margin-top: 16px; }
+    .install-hint { font-size: 13px; color: #a81414; font-weight: 500; display: none; }
+    .install-hint.visible { display: block; }
+  </style>
+</head>
+<body>
+  <div class="logo">iTVT</div>
+  <h1>Otwórz w aplikacji desktopowej</h1>
+  <p>Zainstaluj aplikację iTVT na swoim komputerze, żeby oglądać programy na żywo i VOD w lepszej jakości.</p>
+
+  <div class="links">
+    <a class="btn" href="itvt://open">Otwórz iTVT</a>
+    <a class="btn btn-outline" href="https://github.com/open-itvt/desktop-app-dist/releases" target="_blank">Pobierz</a>
+  </div>
+
+  <p class="install-hint" id="hint">
+    Nie masz jeszcze aplikacji?
+    <a href="https://github.com/open-itvt/desktop-app-dist/releases" target="_blank" style="color:#a81414;">Pobierz ją tutaj</a>
+  </p>
+
+  <p class="footer">
+    Windows &bull; macOS &bull; Linux
+  </p>
+
+  <script>
+    var btn = document.querySelector('.btn');
+    var hint = document.getElementById('hint');
+    var ua = navigator.userAgent;
+
+    // Detect OS for default download button
+    var downloadUrl = 'https://github.com/open-itvt/desktop-app-dist/releases';
+    if (ua.indexOf('Windows') !== -1) downloadUrl += '/latest/download/itvt-windows-portable.zip';
+    else if (ua.indexOf('Mac') !== -1) downloadUrl += '/latest/download/itvt-macos.dmg';
+    else downloadUrl += '/latest/download/itvt-linux.AppImage';
+
+    document.querySelectorAll('a[href*="releases"]').forEach(function(el) {
+      el.href = downloadUrl;
+    });
+
+    // Try to open the app via itvt:// protocol
+    function tryOpen() {
+      var start = Date.now();
+      window.location.href = 'itvt://open';
+
+      // If app doesn't open after 2s, show download hint
+      setTimeout(function() {
+        if (document.hidden === false) {
+          hint.classList.add('visible');
+        }
+      }, 2000);
+    }
+
+    btn.addEventListener('click', function(e) {
+      // Don't prevent default — let the link be followed
+      tryOpen();
+    });
+
+    // Auto-try on page load
+    setTimeout(tryOpen, 500);
+  </script>
+</body>
+</html>
