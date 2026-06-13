@@ -1,16 +1,18 @@
-import { ref, onMounted, onUnmounted } from 'vue'
-
-const offline = ref(false)
+import { onMounted, onUnmounted } from 'vue'
 
 let checkInterval: ReturnType<typeof setInterval> | undefined
 
-export function useConnectivity() {
-  function goOffline() { offline.value = true }
-  function goOnline() { offline.value = false }
+function toggle(force?: boolean) {
+  const el = document.getElementById('offline')
+  if (!el) return
+  const show = force !== undefined ? force : !navigator.onLine
+  el.classList.toggle('show', show)
+}
 
+export function useConnectivity() {
   onMounted(() => {
-    window.addEventListener('offline', goOffline)
-    window.addEventListener('online', goOnline)
+    window.addEventListener('offline', () => toggle(true))
+    window.addEventListener('online', () => toggle(false))
 
     // Also check proxy connectivity periodically
     checkInterval = setInterval(async () => {
@@ -19,24 +21,19 @@ export function useConnectivity() {
       if (port) {
         try {
           const res = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(3000) })
-          if (res.ok) goOnline()
-          else goOffline()
+          toggle(res.ok ? false : true)
         } catch {
-          goOffline()
+          toggle(true)
         }
       } else {
-        // No proxy — use navigator.onLine
-        if (!navigator.onLine) goOffline()
-        else goOnline()
+        toggle()
       }
     }, 5000)
   })
 
   onUnmounted(() => {
-    window.removeEventListener('offline', goOffline)
-    window.removeEventListener('online', goOnline)
+    window.removeEventListener('offline', () => toggle(true))
+    window.removeEventListener('online', () => toggle(false))
     if (checkInterval) clearInterval(checkInterval)
   })
-
-  return { offline }
 }

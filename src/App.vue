@@ -6,11 +6,10 @@ import ContextMenu from '@/components/ui/ContextMenu.vue'
 import { useTheme } from '@/composables/useTheme'
 import { useDeepLink } from '@/composables/useDeepLink'
 import { useConnectivity } from '@/composables/useConnectivity'
-import { WifiIcon } from '@heroicons/vue/24/outline'
 
 useTheme()
 useDeepLink()
-const { offline } = useConnectivity()
+useConnectivity()
 
 onMounted(() => {
   document.addEventListener('keydown', blockSelectAll)
@@ -23,8 +22,6 @@ onMounted(() => {
 function blockSelectAll(e: KeyboardEvent) {
   if ((e.ctrlKey || e.metaKey) && e.key === 'a') e.preventDefault()
 }
-
-function reload() { window.location.reload() }
 </script>
 
 <template>
@@ -36,22 +33,6 @@ function reload() { window.location.reload() }
     </main>
     <ContextMenu />
   </div>
-
-  <Teleport to="body">
-    <Transition name="offline-fade">
-      <div v-if="offline" class="offline-overlay">
-        <div class="offline-content">
-          <WifiIcon class="offline-icon" />
-          <div class="offline-logo">iTVT</div>
-          <div class="offline-msg">Błąd połączenia</div>
-          <div class="offline-sub">z internetem / serwerem</div>
-          <div class="offline-retry" @click="reload">
-            Spróbuj ponownie
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
 </template>
 
 <style scoped>
@@ -70,80 +51,4 @@ function reload() { window.location.reload() }
 .app-topbar { grid-area: topbar; z-index: 100; }
 .app-sidebar { grid-area: sidebar; z-index: 90; }
 .app-main { grid-area: main; overflow-y: auto; overflow-x: hidden; }
-</style>
-
-<style>
-.offline-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 500000;
-  background: #09090b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.offline-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.offline-icon {
-  width: 40px;
-  height: 40px;
-  color: #a81414;
-  opacity: 0.7;
-  margin-bottom: 8px;
-}
-
-.offline-logo {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 48px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  color: #ffffff;
-}
-
-.offline-msg {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: #a81414;
-  margin-top: 8px;
-}
-
-.offline-sub {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
-  color: #71717a;
-}
-
-.offline-retry {
-  margin-top: 16px;
-  padding: 10px 28px;
-  border: 1px solid #a81414;
-  border-radius: 8px;
-  color: #a81414;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.offline-retry:hover {
-  background: rgba(168, 20, 20, 0.15);
-}
-
-.offline-fade-enter-active,
-.offline-fade-leave-active {
-  transition: opacity 0.35s ease;
-}
-
-.offline-fade-enter-from,
-.offline-fade-leave-to {
-  opacity: 0;
-}
 </style>
