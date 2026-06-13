@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { PlayIcon } from '@heroicons/vue/24/outline'
 import LiveBadge from '@/components/ui/LiveBadge.vue'
 import type { Channel } from '@/types'
 import { CHANNEL_HLS } from '@/composables/useMockData'
@@ -83,7 +82,6 @@ function openPlayer() {
             <span class="channel-logo">{{ channel.name.charAt(0) }}</span>
             <span class="channel-name">{{ channel.name }}</span>
           </div>
-          <PlayIcon class="play-icon" />
           <span class="click-text">Kliknij by włączyć transmisję</span>
         </div>
       </div>
@@ -176,14 +174,6 @@ function openPlayer() {
   font-size: 12px;
   color: var(--accent-red);
   font-weight: 600;
-  margin-top: 2px;
-}
-
-.play-icon {
-  width: 32px;
-  height: 32px;
-  color: var(--accent-red);
-  margin-top: 4px;
 }
 
 .player-container.clickable {
