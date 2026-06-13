@@ -15,7 +15,7 @@ pub fn run() {
             let window = app.get_webview_window("main").unwrap();
 
             #[cfg(not(debug_assertions))]
-            let base_url = "https://desktop-app.itvt.xyz";
+            let base_url = "https://tauri.localhost";
             #[cfg(debug_assertions)]
             let base_url = "http://localhost:1420";
 
