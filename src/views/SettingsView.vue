@@ -12,6 +12,7 @@ const notifications = ref(true)
 const autoplay = ref(true)
 const showPrivacy = ref(false)
 const showRestartPrompt = ref(false)
+const showClearPrompt = ref(false)
 let pendingChannel: 'stable' | 'debug' | null = null
 
 function switchChannel(ch: 'stable' | 'debug') {
@@ -33,6 +34,23 @@ function confirmChannel() {
 function cancelChannel() {
   showRestartPrompt.value = false
   pendingChannel = null
+}
+
+function clearCache() {
+  try {
+    localStorage.clear()
+    sessionStorage.clear()
+  } catch { /* ignore */ }
+  // Clear cookies
+  document.cookie.split(';').forEach(c => {
+    document.cookie = c.trim().split('=')[0] + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/'
+  })
+  // Clear Cache Storage API
+  if ('caches' in window) {
+    caches.keys().then(keys => keys.forEach(k => caches.delete(k))).catch(() => {})
+  }
+  showClearPrompt.value = false
+  window.location.reload()
 }
 </script>
 
@@ -154,6 +172,20 @@ function cancelChannel() {
           <span class="setting-value">2.0.0</span>
         </div>
       </section>
+
+      <section class="settings-group">
+        <div class="group-header">
+          <InformationCircleIcon class="group-icon" />
+          <h3>Pamięć podręczna</h3>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Wyczyść pamięć podręczną</span>
+            <span class="setting-desc">Usuwa dane przechowywane lokalnie (ustawienia, zapisane filmy, cache miniaturek)</span>
+          </div>
+          <button class="text-btn clear-cache" @click="showClearPrompt = true">Wyczyść</button>
+        </div>
+      </section>
     </div>
 
     <Teleport to="body">
@@ -216,6 +248,29 @@ function cancelChannel() {
               <div class="restart-actions">
                 <button class="restart-btn cancel" @click="cancelChannel">Anuluj</button>
                 <button class="restart-btn confirm" @click="confirmChannel">Uruchom ponownie</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Clear cache prompt -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showClearPrompt" class="modal-overlay" @click.self="showClearPrompt = false">
+          <div class="modal-card restart-card">
+            <div class="modal-header">
+              <h2 class="restart-title">Wyczyść pamięć podręczną</h2>
+              <button class="modal-close" @click="showClearPrompt = false">
+                <XMarkIcon class="close-icon" />
+              </button>
+            </div>
+            <div class="restart-body">
+              <p class="restart-text">Usunięte zostaną wszystkie dane lokalne: ustawienia, nick, zapisane filmy, cache miniaturek. Aplikacja uruchomi się ponownie. Kontynuować?</p>
+              <div class="restart-actions">
+                <button class="restart-btn cancel" @click="showClearPrompt = false">Anuluj</button>
+                <button class="restart-btn confirm" @click="clearCache">Wyczyść i uruchom ponownie</button>
               </div>
             </div>
           </div>
