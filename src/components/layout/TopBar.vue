@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MagnifyingGlassIcon, BellIcon, XMarkIcon, ArrowLeftIcon, TvIcon, PlayIcon, HeartIcon, ArrowsPointingOutIcon, ArrowsPointingInIcon } from '@heroicons/vue/24/outline'
-import { CHANNELS } from '@/composables/useMockData'
+import { CHANNELS, MOCK_CHANNELS_DATA } from '@/composables/useMockData'
 import { useProfile } from '@/composables/useProfile'
 import { getWatchCount } from '@/composables/useWatchHistory'
 import { useFullscreen } from '@/composables/useFullscreen'
@@ -95,10 +95,29 @@ async function doSearch() {
   if (!q) return
   searching.value = true
   searched.value = true
-  // Simple fallback — just store for schedule view
+
+  const ql = q.toLowerCase()
+
+  // Search channels
+  const channelResults: ChannelResult[] = CHANNELS
+    .filter(ch => ch.toLowerCase().includes(ql))
+    .map(ch => ({ type: 'channel' as const, name: ch, slug: ch.toLowerCase().replace(/\s+/g, '-') }))
+
+  // Search EPG programs
+  const epgResults: EpgProgramResult[] = []
+  for (const ch of MOCK_CHANNELS_DATA) {
+    for (const prog of ch.programs) {
+      if (prog.title.toLowerCase().includes(ql) || prog.category.toLowerCase().includes(ql)) {
+        epgResults.push({ type: 'epg', title: prog.title, channel: ch.name, time: prog.time, category: prog.category })
+      }
+    }
+  }
+
+  searchResults.value = [...channelResults, ...epgResults]
+
+  // Store for schedule view highlighting
   localStorage.setItem('ivod_search_query', q)
   window.dispatchEvent(new CustomEvent('search-highlight', { detail: q }))
-  searchResults.value = []
   searching.value = false
 }
 

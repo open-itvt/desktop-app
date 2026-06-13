@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   ArrowLeftIcon,
@@ -34,7 +34,7 @@ const streamUrl = ref('')
 const loading = ref(true)
 const playing = ref(false)
 const fullscreen = ref(false)
-const volume = ref(50)
+const volume = ref(100)
 const muted = ref(false)
 const useEmbed = computed(() => !isLinux())
 const iframeRef = ref<HTMLIFrameElement | null>(null)
@@ -85,6 +85,15 @@ startStream()
 
 onUnmounted(() => {
   stopStream()
+  document.removeEventListener('fullscreenchange', syncFs)
+})
+
+function syncFs() {
+  fullscreen.value = !!document.fullscreenElement
+}
+
+onMounted(() => {
+  document.addEventListener('fullscreenchange', syncFs)
 })
 
 function togglePlay() {
@@ -98,13 +107,12 @@ function togglePlay() {
 
 function toggleFullscreen() {
   fullscreen.value = !fullscreen.value
-  if (useEmbed.value) {
-    postMsg('fullscreen', { active: fullscreen.value })
-  } else {
-    const el = document.querySelector('.player-wrap')
-    if (el) {
-      if (fullscreen.value) el.requestFullscreen?.()
-      else document.exitFullscreen?.()
+  const el = document.querySelector('.player-wrap')
+  if (el) {
+    if (fullscreen.value) {
+      el.requestFullscreen?.()
+    } else {
+      document.exitFullscreen?.()
     }
   }
 }
