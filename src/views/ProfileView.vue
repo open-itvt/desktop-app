@@ -27,6 +27,7 @@ const favCount = ref(0)
 onMounted(() => {
   loadBookmarks()
   loadHistory()
+  window.addEventListener('bookmark-changed', loadBookmarks)
 })
 
 function openEdit() {

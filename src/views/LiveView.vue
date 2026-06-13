@@ -207,19 +207,28 @@ function toggleMute() {
   border-radius: 50%;
   border: 1px solid rgba(255,255,255,0.3);
   background: transparent;
-  color: #fff;
   cursor: pointer;
   transition: background 0.2s;
   flex-shrink: 0;
 }
 
-.ctrl-btn--small {
-  width: 32px;
-  height: 32px;
+.live-topbar .ctrl-btn {
+  color: #fff;
 }
 
-.ctrl-btn:hover {
+.player-controls .ctrl-btn {
+  color: var(--text-main);
+  border-color: var(--border-subtle);
+}
+
+.ctrl-btn--small { width: 32px; height: 32px; }
+
+.live-topbar .ctrl-btn:hover {
   background: rgba(255,255,255,0.15);
+}
+
+.player-controls .ctrl-btn:hover {
+  background: var(--bg-card-hover, var(--bg-card));
 }
 
 .ctrl-icon {

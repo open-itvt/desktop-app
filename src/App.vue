@@ -2,13 +2,13 @@
 import { onMounted } from 'vue'
 import TopBar from '@/components/layout/TopBar.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
+import ContextMenu from '@/components/ui/ContextMenu.vue'
 import { useTheme } from '@/composables/useTheme'
 
 useTheme()
 
 onMounted(() => {
   document.addEventListener('keydown', blockSelectAll)
-  // Keep splash at least 300ms to prevent white flash
   setTimeout(() => {
     const splash = document.getElementById('splash')
     if (splash) splash.classList.add('hidden')
@@ -16,9 +16,7 @@ onMounted(() => {
 })
 
 function blockSelectAll(e: KeyboardEvent) {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
-    e.preventDefault()
-  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'a') e.preventDefault()
 }
 </script>
 
@@ -29,6 +27,7 @@ function blockSelectAll(e: KeyboardEvent) {
     <main class="app-main">
       <router-view />
     </main>
+    <ContextMenu />
   </div>
 </template>
 

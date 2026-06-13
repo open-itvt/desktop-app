@@ -406,7 +406,7 @@ function goBack() {
   width: 32px; height: 32px;
   border-radius: 50%;
   background: var(--accent-red);
-  color: var(--text-main);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;

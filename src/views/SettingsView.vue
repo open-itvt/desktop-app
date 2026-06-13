@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { SunIcon, MoonIcon, PaintBrushIcon, BellIcon, GlobeAltIcon, ShieldCheckIcon, InformationCircleIcon } from '@heroicons/vue/24/outline'
+import { ref } from 'vue'
+import { SunIcon, MoonIcon, PaintBrushIcon, BellIcon, GlobeAltIcon, ShieldCheckIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import SectionHeader from '@/components/ui/SectionHeader.vue'
 import { useTheme } from '@/composables/useTheme'
-import { ref } from 'vue'
 
 const { theme, toggle } = useTheme()
 
 const notifications = ref(true)
 const autoplay = ref(true)
-
-function openPrivacy() {
-  window.open('https://vod.itvt.xyz/#prywatnosc', '_blank')
-}
+const showPrivacy = ref(false)
 </script>
 
 <template>
@@ -19,6 +16,7 @@ function openPrivacy() {
     <SectionHeader title="USTAWIENIA" />
 
     <div class="settings-sections">
+
       <section class="settings-group">
         <div class="group-header">
           <PaintBrushIcon class="group-icon" />
@@ -97,7 +95,7 @@ function openPrivacy() {
             <span class="setting-label">Polityka prywatności</span>
             <span class="setting-desc">Dowiedz się, jak przetwarzamy Twoje dane</span>
           </div>
-          <button class="text-btn" @click="openPrivacy">Przeglądaj</button>
+          <button class="text-btn" @click="showPrivacy = true">Przeglądaj</button>
         </div>
       </section>
 
@@ -110,208 +108,100 @@ function openPrivacy() {
           <div class="setting-info">
             <span class="setting-label">Wersja aplikacji</span>
           </div>
-          <span class="setting-value">2.0.0 - preview</span>
+          <span class="setting-value">2.0.0</span>
         </div>
       </section>
     </div>
+
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showPrivacy" class="modal-overlay" @click.self="showPrivacy = false">
+          <div class="modal-card privacy-card">
+            <div class="modal-header">
+              <h2 class="modal-title">Polityka prywatności</h2>
+              <button class="modal-close" @click="showPrivacy = false">
+                <XMarkIcon class="close-icon" />
+              </button>
+            </div>
+            <div class="privacy-body">
+              <h3>1. Administrator danych</h3>
+              <p>Administratorem Twoich danych osobowych jest iTVT. Kontakt: kontakt@itvt.xyz.</p>
+
+              <h3>2. Jakie dane zbieramy?</h3>
+              <ul>
+                <li>Dane konta: nazwa użytkownika i inicjał awatara (przechowywane lokalnie).</li>
+                <li>Dane o aktywności: lista zapisanych filmów, historia oglądania, motyw.</li>
+                <li>Dane techniczne: typ urządzenia, wersja aplikacji (przekazywane do API Odysee).</li>
+              </ul>
+
+              <h3>3. Pliki cookie</h3>
+              <p>Nie używamy cookies śledzących. Używamy localStorage do ustawień i zapisanych filmów. Dane nie są wysyłane poza:</p>
+              <ul>
+                <li>api.lbry.tv (wyszukiwanie VOD)</li>
+                <li>video-itv.itvt.xyz (strumieniowanie HLS)</li>
+              </ul>
+
+              <h3>4. Podstawa prawna</h3>
+              <p>Dane lokalne służą wyłącznie do świadczenia usługi (art. 6 ust. 1 lit. b RODO). Bez profilowania i marketingu.</p>
+
+              <h3>5. Twoje prawa</h3>
+              <p>Masz prawo dostępu, sprostowania i usunięcia danych. Dane można wyczyścić przez usunięcie localStorage w narzędziach deweloperskich.</p>
+
+              <h3>6. Kontakt</h3>
+              <p>W sprawach prywatności: kontakt@itvt.xyz</p>
+
+              <p class="privacy-footer">Ostatnia aktualizacja: czerwiec 2026</p>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <style scoped>
-.settings {
-  padding: 24px 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 720px;
-}
-
-.settings-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.settings-group {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.group-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-subtle);
-  margin-bottom: 8px;
-}
-
-.group-icon {
-  width: 20px;
-  height: 20px;
-  color: var(--accent-red);
-}
-
-.group-header h3 {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 0;
-  gap: 16px;
-}
-
-.setting-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-}
-
-.setting-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-main);
-}
-
-.setting-desc {
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
-.setting-value {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-dark);
-  flex-shrink: 0;
-}
-
-.text-btn {
-  padding: 8px 16px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--accent-red);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: filter 0.2s;
-  flex-shrink: 0;
-}
-
-.text-btn:hover {
-  filter: brightness(1.1);
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 22px;
-  flex-shrink: 0;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  inset: 0;
-  background: var(--border-subtle);
-  border-radius: 22px;
-  transition: background 0.2s;
-}
-
-.slider::before {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  left: 3px;
-  bottom: 3px;
-  background: var(--text-main);
-  border-radius: 50%;
-  transition: transform 0.2s, background 0.2s;
-}
-
-.switch input:checked + .slider {
-  background: var(--accent-red);
-}
-
-.switch input:checked + .slider::before {
-  transform: translateX(18px);
-  background: #fff;
-}
-
-.theme-toggle {
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.toggle-track {
-  position: relative;
-  width: 56px;
-  height: 28px;
-  border-radius: 14px;
-  background: var(--bg-main);
-  border: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 6px;
-}
-
-.toggle-icon {
-  width: 16px;
-  height: 16px;
-  z-index: 1;
-  transition: color 0.2s;
-}
-
-.toggle-icon.sun {
-  color: var(--text-dark);
-}
-
-.theme-toggle.light .toggle-icon.sun {
-  color: #f59e0b;
-}
-
-.toggle-icon.moon {
-  color: #6366f1;
-}
-
-.theme-toggle.light .toggle-icon.moon {
-  color: var(--text-dark);
-}
-
-.toggle-thumb {
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--accent-red);
-  top: 2px;
-  left: 2px;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
-
-.toggle-thumb.right {
-  transform: translateX(28px);
-}
+.settings { padding: 24px 32px; display: flex; flex-direction: column; gap: 24px; max-width: 720px; }
+.settings-sections { display: flex; flex-direction: column; gap: 20px; }
+.settings-group { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; display: flex; flex-direction: column; gap: 4px; }
+.group-header { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 8px; }
+.group-icon { width: 20px; height: 20px; color: var(--accent-red); }
+.group-header h3 { font-size: 15px; font-weight: 600; color: var(--text-main); }
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; gap: 16px; }
+.setting-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.setting-label { font-size: 14px; font-weight: 500; color: var(--text-main); }
+.setting-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.setting-value { font-size: 14px; font-weight: 500; color: var(--text-dark); flex-shrink: 0; }
+.text-btn { padding: 8px 16px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); background: transparent; color: var(--accent-red); font-size: 13px; font-weight: 500; cursor: pointer; transition: filter 0.2s; flex-shrink: 0; }
+.text-btn:hover { filter: brightness(1.1); }
+.switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; inset: 0; background: var(--border-subtle); border-radius: 22px; transition: background 0.2s; }
+.slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; bottom: 3px; background: var(--text-main); border-radius: 50%; transition: transform 0.2s; }
+.switch input:checked + .slider { background: var(--accent-red); }
+.switch input:checked + .slider::before { transform: translateX(18px); background: #fff; }
+.theme-toggle { cursor: pointer; flex-shrink: 0; }
+.toggle-track { position: relative; width: 56px; height: 28px; border-radius: 14px; background: var(--bg-main); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; padding: 0 6px; }
+.toggle-icon { width: 16px; height: 16px; z-index: 1; transition: color 0.2s; }
+.toggle-icon.sun { color: var(--text-dark); }
+.theme-toggle.light .toggle-icon.sun { color: #f59e0b; }
+.toggle-icon.moon { color: #6366f1; }
+.theme-toggle.light .toggle-icon.moon { color: var(--text-dark); }
+.toggle-thumb { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-red); top: 2px; left: 2px; transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+.toggle-thumb.right { transform: translateX(28px); }
+.modal-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: flex-start; padding: 60px 16px; overflow-y: auto; }
+.privacy-card { max-width: 600px; width: 100%; }
+.privacy-card .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.privacy-card .modal-title { font-size: 20px; font-weight: 700; color: var(--text-main); }
+.privacy-card .modal-close { width: 32px; height: 32px; border: 1px solid var(--border-subtle); border-radius: 50%; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.privacy-card .modal-close:hover { filter: brightness(1.1); }
+.close-icon { width: 18px; height: 18px; }
+.privacy-body { font-size: 13px; line-height: 1.6; color: var(--text-main); max-height: 60vh; overflow-y: auto; padding-right: 4px; }
+.privacy-body h3 { font-size: 14px; font-weight: 700; margin: 16px 0 6px; color: var(--accent-red); }
+.privacy-body p { margin: 4px 0; color: var(--text-muted); }
+.privacy-body ul { margin: 6px 0; padding-left: 20px; color: var(--text-muted); }
+.privacy-body li { margin: 4px 0; }
+.privacy-body code { font-size: 12px; background: var(--bg-main); padding: 1px 6px; border-radius: 3px; color: var(--accent-red); }
+.privacy-footer { margin-top: 16px; font-size: 11px; color: var(--text-dark); text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 12px; }
+.modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
 </style>

@@ -162,7 +162,7 @@ const currentChannel = computed(() => MOCK_CHANNEL_DATA[activeChannel.value])
   width: 56px;
   height: 36px;
   border-radius: 4px;
-  background: linear-gradient(135deg, #1a1a1f 0%, #0f0f12 100%);
+  background: var(--accent-red-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -170,10 +170,9 @@ const currentChannel = computed(() => MOCK_CHANNEL_DATA[activeChannel.value])
 }
 
 .upcoming-time {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--text-muted);
-  opacity: 0.5;
+  color: var(--accent-red);
 }
 
 .upcoming-title {

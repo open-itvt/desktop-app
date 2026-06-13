@@ -40,6 +40,7 @@ function toggleBookmark() {
     }
     localStorage.setItem(BKS_KEY, JSON.stringify(ids))
     bookmarked.value = !bookmarked.value
+    window.dispatchEvent(new CustomEvent('bookmark-changed'))
   } catch { /* ignore */ }
 }
 
