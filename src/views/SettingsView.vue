@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { SunIcon, MoonIcon, PaintBrushIcon, BellIcon, GlobeAltIcon, ShieldCheckIcon, InformationCircleIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 import SectionHeader from '@/components/ui/SectionHeader.vue'
 import { useTheme } from '@/composables/useTheme'
@@ -12,6 +12,13 @@ const notifications = ref(true)
 const autoplay = ref(true)
 const showPrivacy = ref(false)
 const showRestartPrompt = ref(false)
+const showClearPrompt = ref(false)
+const versionLabel = computed(() => {
+  try {
+    const host = window.location.hostname
+    return host && host.includes('debug') ? '2.0.0 (Debug)' : '2.0.0'
+  } catch { return '2.0.0' }
+})
 let pendingChannel: 'stable' | 'debug' | null = null
 
 function switchChannel(ch: 'stable' | 'debug') {
@@ -33,6 +40,23 @@ function confirmChannel() {
 function cancelChannel() {
   showRestartPrompt.value = false
   pendingChannel = null
+}
+
+function clearCache() {
+  try {
+    localStorage.clear()
+    sessionStorage.clear()
+  } catch { /* ignore */ }
+  // Clear cookies
+  document.cookie.split(';').forEach(c => {
+    document.cookie = c.trim().split('=')[0] + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/'
+  })
+  // Clear Cache Storage API
+  if ('caches' in window) {
+    caches.keys().then(keys => keys.forEach(k => caches.delete(k))).catch(() => {})
+  }
+  showClearPrompt.value = false
+  window.location.reload()
 }
 </script>
 
@@ -138,7 +162,7 @@ function cancelChannel() {
             <span class="setting-label">Polityka prywatności</span>
             <span class="setting-desc">Dowiedz się, jak przetwarzamy Twoje dane</span>
           </div>
-          <button class="text-btn" @click="showPrivacy = true">Przeglądaj</button>
+          <button class="text-btn" @click="showPrivacy = true">Przeczytaj</button>
         </div>
       </section>
 
@@ -151,7 +175,21 @@ function cancelChannel() {
           <div class="setting-info">
             <span class="setting-label">Wersja aplikacji</span>
           </div>
-          <span class="setting-value">2.0.0</span>
+          <span class="setting-value">{{ versionLabel }}</span>
+        </div>
+      </section>
+
+      <section class="settings-group">
+        <div class="group-header">
+          <InformationCircleIcon class="group-icon" />
+          <h3>Pamięć podręczna</h3>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Wyczyść pamięć podręczną</span>
+            <span class="setting-desc">Usuwa dane przechowywane lokalnie (ustawienia, zapisane filmy, cache miniaturek)</span>
+          </div>
+          <button class="text-btn clear-cache" @click="showClearPrompt = true">Wyczyść</button>
         </div>
       </section>
     </div>
@@ -222,6 +260,29 @@ function cancelChannel() {
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Clear cache prompt -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showClearPrompt" class="modal-overlay" @click.self="showClearPrompt = false">
+          <div class="modal-card restart-card">
+            <div class="modal-header">
+              <h2 class="restart-title">Wyczyść pamięć podręczną</h2>
+              <button class="modal-close" @click="showClearPrompt = false">
+                <XMarkIcon class="close-icon" />
+              </button>
+            </div>
+            <div class="restart-body">
+              <p class="restart-text">Usunięte zostaną wszystkie dane lokalne: ustawienia, nick, zapisane filmy, cache miniaturek. Aplikacja uruchomi się ponownie. Kontynuować?</p>
+              <div class="restart-actions">
+                <button class="restart-btn cancel" @click="showClearPrompt = false">Anuluj</button>
+                <button class="restart-btn confirm" @click="clearCache">Wyczyść i uruchom ponownie</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -276,7 +337,8 @@ function cancelChannel() {
 .modal-enter-from, .modal-leave-to { opacity: 0; }
 
 /* Restart modal */
-.restart-card { max-width: 400px; }
+.restart-card { max-width: 400px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; }
+.restart-card .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .restart-title { font-size: 20px; font-weight: 700; color: var(--accent-red); }
 .restart-body { display: flex; flex-direction: column; gap: 16px; }
 .restart-text { font-size: 14px; color: var(--text-main); line-height: 1.5; }

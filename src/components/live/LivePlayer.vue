@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { invoke } from '@tauri-apps/api/core'
 import LiveBadge from '@/components/ui/LiveBadge.vue'
 import type { Channel } from '@/types'
 import { CHANNEL_HLS } from '@/composables/useMockData'
 import type { ChannelName } from '@/composables/useMockData'
+import { captureSnapshot, isLinux } from '@/composables/useBackend'
+import { recordWatch } from '@/composables/useWatchHistory'
 
 const props = defineProps<{
   channel: Channel
@@ -15,6 +16,7 @@ const router = useRouter()
 const snapshotUrl = ref('')
 const loading = ref(true)
 const offline = ref(false)
+const needsClick = ref(false)
 
 onMounted(() => loadSnapshot())
 
@@ -23,6 +25,7 @@ watch(() => props.channel.name, () => loadSnapshot())
 async function loadSnapshot() {
   loading.value = true
   offline.value = false
+  needsClick.value = false
   snapshotUrl.value = ''
 
   const hlsUrl = CHANNEL_HLS[props.channel.name as ChannelName]
@@ -32,8 +35,15 @@ async function loadSnapshot() {
     return
   }
 
+  // On non-Linux, snapshot isn't available; show click-to-play instead of offline
+  if (!isLinux()) {
+    needsClick.value = true
+    loading.value = false
+    return
+  }
+
   try {
-    const dataUrl = await invoke<string>('capture_snapshot', { url: hlsUrl })
+    const dataUrl = await captureSnapshot(hlsUrl)
     snapshotUrl.value = dataUrl
   } catch {
     offline.value = true
@@ -42,13 +52,14 @@ async function loadSnapshot() {
 }
 
 function openPlayer() {
+  recordWatch(`live:${props.channel.name}`)
   router.push(`/live/${encodeURIComponent(props.channel.name)}`)
 }
 </script>
 
 <template>
   <div class="live-player">
-    <div class="player-container" :class="{ offline }">
+    <div class="player-container" :class="{ offline, clickable: needsClick }">
       <img
         v-if="snapshotUrl"
         :src="snapshotUrl"
@@ -63,6 +74,15 @@ function openPlayer() {
             <span class="channel-name">{{ channel.name }}</span>
           </div>
           <span class="offline-text">Transmisja offline</span>
+        </div>
+      </div>
+      <div v-else-if="needsClick" class="player-placeholder clickable">
+        <div class="placeholder-content">
+          <div class="channel-brand">
+            <span class="channel-logo">{{ channel.name.charAt(0) }}</span>
+            <span class="channel-name">{{ channel.name }}</span>
+          </div>
+          <span class="click-text">Kliknij by włączyć transmisję</span>
         </div>
       </div>
       <div v-else class="player-placeholder">
@@ -144,10 +164,25 @@ function openPlayer() {
 
 .offline-text {
   font-size: 12px;
-  color: var(--accent-red-hover, var(--accent-red));
+  color: var(--accent-red);
   font-weight: 600;
   margin-top: 4px;
   opacity: 0.8;
+}
+
+.click-text {
+  font-size: 12px;
+  color: var(--accent-red);
+  font-weight: 600;
+}
+
+.player-container.clickable {
+  cursor: pointer;
+  border-color: var(--accent-red-muted);
+}
+
+.player-container.clickable:hover {
+  border-color: var(--accent-red);
 }
 
 .player-overlay { position: absolute; inset: 0; cursor: pointer; }

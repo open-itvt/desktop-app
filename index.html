@@ -24,9 +24,10 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>iTVT - Desktop App</title>
+    <link rel="stylesheet" href="/offline.css" />
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-
+ 
       #splash {
         position: fixed;
         inset: 0;
@@ -39,12 +40,12 @@
         background: #09090b;
         transition: opacity 0.35s ease;
       }
-
+ 
       #splash.hidden {
         opacity: 0;
         pointer-events: none;
       }
-
+ 
       .splash-logo {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 48px;
@@ -53,7 +54,7 @@
         color: #ffffff;
         animation: splashPulse 1.5s ease-in-out infinite;
       }
-
+ 
       .splash-dot {
         width: 8px;
         height: 8px;
@@ -61,7 +62,7 @@
         background: #a81414;
         animation: splashBlink 1s ease-in-out infinite;
       }
-
+ 
       .splash-loading {
         display: flex;
         align-items: center;
@@ -71,16 +72,16 @@
         color: #a81414;
         text-transform: uppercase;
       }
-
+ 
       .splash-loading span {
         animation: splashBlink 1s ease-in-out infinite;
         animation-delay: calc(var(--i, 0) * 0.2s);
       }
-
+ 
       .splash-loading span:nth-child(2) { --i: 1; }
       .splash-loading span:nth-child(3) { --i: 2; }
       .splash-loading span:nth-child(4) { --i: 3; }
-
+ 
       .splash-open {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 13px;
@@ -88,27 +89,19 @@
         margin-top: -8px;
         animation: splashBlink 1s ease-in-out infinite;
       }
-
+ 
       @keyframes splashPulse {
         0%, 100% { opacity: 0.7; transform: scale(1); }
         50% { opacity: 1; transform: scale(1.04); }
       }
-
+ 
       @keyframes splashBlink {
         0%, 100% { opacity: 0.3; }
         50% { opacity: 1; }
       }
     </style>
-
-    #offline { position:fixed; inset:0; z-index:500000; background:#09090b; display:none; align-items:center; justify-content:center; }
-    #offline.show { display:flex; }
-    .offline-logo { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; font-size:48px; font-weight:800; letter-spacing:-1px; color:#ffffff; }
-    .offline-msg { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; font-size:18px; font-weight:700; color:#a81414; margin-top:12px; }
-    .offline-sub { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; font-size:14px; color:#71717a; margin-top:4px; }
-    .offline-btn { margin-top:20px; padding:10px 28px; border:1px solid #a81414; border-radius:8px; color:#a81414; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:background 0.2s; }
-    .offline-btn:hover { background:rgba(168,20,20,0.15); }
-  </style>
-  <script>
+    <link rel="stylesheet" href="/offline.css" />
+    <script>
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); }, true);
 
     function toggleOffline(force) {
@@ -143,7 +136,7 @@
         <div class="offline-logo">iTVT</div>
         <div class="offline-msg">Błąd połączenia</div>
         <div class="offline-sub">z internetem / serwerem</div>
-        <div class="offline-btn" onclick="location.reload()">Spróbuj ponownie</div>
+        <div class="offline-btn" onclick="top.location.reload()">Spróbuj ponownie</div>
       </div>
     </div>
     <div id="app"></div>
