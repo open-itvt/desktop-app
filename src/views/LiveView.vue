@@ -18,6 +18,7 @@ import {
 } from '@/composables/useMockData'
 import type { ChannelName } from '@/composables/useMockData'
 import { startPlayer, stopPlayer, getStreamUrl, isLinux } from '@/composables/useBackend'
+import { CHANNEL_SLUGS, PLAYER_BASE_URL } from '@/composables/useMockData'
 
 const route = useRoute()
 const router = useRouter()
@@ -35,7 +36,16 @@ const playing = ref(true)
 const fullscreen = ref(false)
 const volume = ref(50)
 const muted = ref(false)
-const useVideo = computed(() => !isLinux())
+const useEmbed = computed(() => !isLinux())
+const iframeRef = ref<HTMLIFrameElement | null>(null)
+const embedUrl = computed(() => {
+  const slug = CHANNEL_SLUGS[channelName.value]
+  return `${PLAYER_BASE_URL}/${slug}?controls=false`
+})
+
+function postMsg(type: string, payload?: Record<string, any>) {
+  iframeRef.value?.contentWindow?.postMessage({ type, ...payload }, '*')
+}
 
 async function startStream() {
   loading.value = true
@@ -79,23 +89,36 @@ onUnmounted(() => {
 
 function togglePlay() {
   playing.value = !playing.value
+  if (useEmbed.value) {
+    postMsg('togglePlay')
+  }
 }
 
 function toggleFullscreen() {
   fullscreen.value = !fullscreen.value
-  const el = document.querySelector('.player-wrap')
-  if (el) {
-    if (fullscreen.value) {
-      el.requestFullscreen?.()
-    } else {
-      document.exitFullscreen?.()
+  if (useEmbed.value) {
+    postMsg('fullscreen', { active: fullscreen.value })
+  } else {
+    const el = document.querySelector('.player-wrap')
+    if (el) {
+      if (fullscreen.value) el.requestFullscreen?.()
+      else document.exitFullscreen?.()
     }
   }
 }
 
 function toggleMute() {
   muted.value = !muted.value
+  if (useEmbed.value) {
+    postMsg('mute', { active: muted.value })
+  }
 }
+
+watch(volume, (v) => {
+  if (useEmbed.value) {
+    postMsg('setVolume', { volume: v })
+  }
+})
 </script>
 
 <template>
@@ -115,16 +138,16 @@ function toggleMute() {
     </div>
 
     <div class="player-wrap">
-      <video
-        v-if="streamUrl && playing && useVideo"
-        :src="streamUrl"
-        class="player-stream"
-        autoplay
-        controls
-        playsinline
+      <iframe
+        v-if="streamUrl && playing && useEmbed"
+        ref="iframeRef"
+        :src="embedUrl"
+        class="player-iframe"
+        allowfullscreen
+        allow="autoplay; encrypted-media; fullscreen"
       />
       <img
-        v-else-if="streamUrl && playing && !useVideo"
+        v-else-if="streamUrl && playing"
         :src="streamUrl"
         class="player-stream"
         alt="Live stream"
@@ -256,11 +279,8 @@ function toggleMute() {
   position: relative;
 }
 
-.player-stream {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
+.player-stream { width: 100%; height: 100%; object-fit: contain; }
+.player-iframe { width: 100%; height: 100%; border: none; }
 
 .player-overlay-content {
   display: flex;
