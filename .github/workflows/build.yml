@@ -86,6 +86,28 @@ jobs:
           path: staging/macos/*
 
   build-macos-intel:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@9 --activate
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: x86_64-apple-darwin }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm tauri build
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      - name: Stage macOS artifacts
+        run: |
+          mkdir -p staging/macos/dmg
+          cp src-tauri/target/release/bundle/dmg/*.dmg staging/macos/dmg/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: itvt-macos-intel
+          path: staging/macos/*
 
   build-linux:
     runs-on: ubuntu-22.04
