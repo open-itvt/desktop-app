@@ -4,9 +4,19 @@
     <meta charset="UTF-8" />
     <script>
       var ua = navigator.userAgent;
-      var path = window.location.pathname;
-      if (path !== '/apps' && ua.indexOf('iTVT Desktop App') === -1 && window.location.search.indexOf('proxy=') === -1) {
-        window.location.replace('https://vod.itvt.xyz');
+      var isApp = ua.indexOf('iTVT Desktop App') !== -1 || window.location.search.indexOf('proxy=') !== -1;
+
+      if (window.location.pathname === '/apps') {
+        // /apps page — handled by apps.html, skip everything
+      } else if (isApp) {
+        // Desktop app or dev mode — load splash + vue normally
+      } else {
+        // Browser — try to open the installed app first
+        document.getElementById('splash-open-text').style.display = '';
+        setTimeout(function() {
+          window.location.replace('https://vod.itvt.xyz');
+        }, 3000);
+        window.location.href = 'itvt://open';
       }
     </script>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -71,6 +81,14 @@
       .splash-loading span:nth-child(3) { --i: 2; }
       .splash-loading span:nth-child(4) { --i: 3; }
 
+      .splash-open {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 13px;
+        color: #a81414;
+        margin-top: -8px;
+        animation: splashBlink 1s ease-in-out infinite;
+      }
+
       @keyframes splashPulse {
         0%, 100% { opacity: 0.7; transform: scale(1); }
         50% { opacity: 1; transform: scale(1.04); }
@@ -91,6 +109,9 @@
       <div class="splash-dot"></div>
       <div class="splash-loading">
         <span>Ł</span><span>a</span><span>d</span><span>o</span><span>w</span><span>a</span><span>n</span><span>i</span><span>e</span>
+      </div>
+      <div class="splash-open" id="splash-open-text" style="display:none">
+        Otwieranie aplikacji...
       </div>
     </div>
     <div id="app"></div>
