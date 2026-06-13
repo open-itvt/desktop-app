@@ -40,14 +40,20 @@ export const MOCK_UPCOMING: Record<ChannelName, UpcomingProgram[]> = {
   'iTVT': [
     { time: '20:00', title: 'Fast News IT' },
     { time: '21:00', title: 'Retrogaming Chiptune Session' },
+    { time: '22:00', title: 'Debata Wieczorna' },
+    { time: '23:00', title: 'Kino Nocne' },
   ],
   'Oliwier Stream': [
     { time: '20:00', title: 'Oliwier na Żywo' },
     { time: '22:00', title: 'Gaming Session' },
+    { time: '00:00', title: 'Powtórka Vloga' },
+    { time: '02:00', title: 'Muzyka na Dobranoc' },
   ],
   'iTVT Now': [
     { time: '19:30', title: 'Wiadomości' },
-    { time: '21:00', title: 'Wieczorne Kino Prawdy' },
+    { time: '21:00', title: 'Kino Wieczorne' },
+    { time: '23:30', title: 'Serwis Nocny' },
+    { time: '01:00', title: 'Retro Kino' },
   ],
 }
 

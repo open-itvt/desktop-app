@@ -19,9 +19,6 @@ function scrollRight() {
   trackRef.value?.scrollBy({ left: 200, behavior: 'smooth' })
 }
 
-function openSearch() {
-  window.dispatchEvent(new CustomEvent('open-search'))
-}
 </script>
 
 <template>
@@ -29,8 +26,7 @@ function openSearch() {
     <div class="epg-header">
       <h3 class="epg-title">{{ channel }}</h3>
       <div class="epg-actions">
-        <button class="epg-btn" @click="openSearch">Szukaj...</button>
-        <button class="epg-btn" @click="$router.push('/schedule')">Więcej</button>
+        <button class="epg-btn" @click="$router.push('/schedule')">Zobacz więcej</button>
       </div>
       <div class="epg-nav">
         <button class="nav-btn" @click="scrollLeft">

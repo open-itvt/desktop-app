@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import LivePlayer from '@/components/live/LivePlayer.vue'
 import VodCarousel from '@/components/vod/VodCarousel.vue'
-import SectionHeader from '@/components/ui/SectionHeader.vue'
 import EpgBar from '@/components/layout/EpgBar.vue'
 import {
   MOCK_CHANNEL_DATA,
@@ -13,9 +11,7 @@ import {
 } from '@/composables/useMockData'
 import type { ChannelName } from '@/composables/useMockData'
 
-const router = useRouter()
 const activeChannel = ref<ChannelName>('iTVT')
-
 const currentChannel = computed(() => MOCK_CHANNEL_DATA[activeChannel.value])
 </script>
 
@@ -40,11 +36,6 @@ const currentChannel = computed(() => MOCK_CHANNEL_DATA[activeChannel.value])
         <LivePlayer :channel="currentChannel" />
       </div>
       <div class="top-right">
-        <SectionHeader title="NASTĘPNIE W PROGRAMIE">
-          <template #actions>
-            <button class="btn-sm" @click="router.push('/schedule')">Więcej</button>
-          </template>
-        </SectionHeader>
         <div class="upcoming-list">
           <div
             v-for="(item, index) in MOCK_UPCOMING[activeChannel]"
