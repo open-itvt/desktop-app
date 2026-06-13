@@ -61,6 +61,20 @@ jobs:
             src-tauri/target/release/bundle/nsis/*.exe
             src-tauri/target/release/bundle/msi/*.msi
 
+      - name: Build portable Windows ZIP
+        shell: pwsh
+        run: |
+          $exe = "src-tauri/target/release/desktop-app.exe"
+          if (Test-Path $exe) {
+            Compress-Archive -Path $exe -DestinationPath "iTVT-portable-win64.zip"
+          }
+
+      - name: Upload portable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: itvt-windows-portable
+          path: iTVT-portable-win64.zip
+
 # =========================
 # MACOS
 # =========================
@@ -196,6 +210,7 @@ jobs:
           prerelease: false
           files: |
             itvt-windows/*
+            itvt-windows-portable/*
             itvt-macos/*
             itvt-linux/*
         env:
