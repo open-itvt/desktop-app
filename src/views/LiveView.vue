@@ -40,7 +40,7 @@ const useEmbed = computed(() => !isLinux())
 const iframeRef = ref<HTMLIFrameElement | null>(null)
 const embedUrl = computed(() => {
   const slug = CHANNEL_SLUGS[channelName.value]
-  return `${PLAYER_BASE_URL}/${slug}?controls=false`
+  return `${PLAYER_BASE_URL}/${slug}?controls=false&blur=0`
 })
 
 function postMsg(type: string, payload?: Record<string, any>) {
