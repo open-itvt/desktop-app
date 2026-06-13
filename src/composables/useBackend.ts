@@ -28,7 +28,8 @@ export function isLinux(): boolean { return platform === 'linux' }
 export async function startPlayer(url: string): Promise<void> {
   await resolve()
   if (!proxyBase) throw new Error('no proxy')
-
+  // On non-Linux, the proxy can't decode HLS — frontend uses direct HLS
+  if (platform !== 'linux') return
   const res = await fetch(`${proxyBase}/api/player/start`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -42,7 +43,7 @@ export async function startPlayer(url: string): Promise<void> {
 
 export async function stopPlayer(): Promise<void> {
   await resolve()
-  if (!proxyBase) return
+  if (!proxyBase || platform !== 'linux') return
   await fetch(`${proxyBase}/api/player/stop`, { method: 'POST' }).catch(() => {})
 }
 

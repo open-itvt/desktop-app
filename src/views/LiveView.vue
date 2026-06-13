@@ -17,7 +17,7 @@ import {
   CHANNEL_HLS,
 } from '@/composables/useMockData'
 import type { ChannelName } from '@/composables/useMockData'
-import { startPlayer, stopPlayer, getStreamUrl } from '@/composables/useBackend'
+import { startPlayer, stopPlayer, getStreamUrl, isLinux } from '@/composables/useBackend'
 
 const route = useRoute()
 const router = useRouter()
@@ -35,28 +35,35 @@ const playing = ref(true)
 const fullscreen = ref(false)
 const volume = ref(50)
 const muted = ref(false)
+const useVideo = computed(() => !isLinux())
 
 async function startStream() {
   loading.value = true
   const hlsUrl = CHANNEL_HLS[channelName.value]
   if (!hlsUrl) { loading.value = false; return }
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      await startPlayer(hlsUrl)
-      streamUrl.value = getStreamUrl()
-      loading.value = false
-      return
-    } catch (e) {
-      console.error(`Attempt ${attempt + 1} failed:`, e)
-      await new Promise(r => setTimeout(r, 300))
+  if (isLinux()) {
+    // Linux: use GStreamer pipeline → MJPEG via proxy
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        await startPlayer(hlsUrl)
+        streamUrl.value = getStreamUrl()
+        loading.value = false
+        return
+      } catch (e) {
+        console.error(`Attempt ${attempt + 1} failed:`, e)
+        await new Promise(r => setTimeout(r, 300))
+      }
     }
+  } else {
+    // Win/Mac: direct HLS via <video> tag
+    streamUrl.value = hlsUrl
+    loading.value = false
   }
-  loading.value = false
 }
 
 async function stopStream() {
-  await stopPlayer()
+  if (isLinux()) await stopPlayer()
   streamUrl.value = ''
 }
 
@@ -108,8 +115,16 @@ function toggleMute() {
     </div>
 
     <div class="player-wrap">
+      <video
+        v-if="streamUrl && playing && useVideo"
+        :src="streamUrl"
+        class="player-stream"
+        autoplay
+        controls
+        playsinline
+      />
       <img
-        v-if="streamUrl && playing"
+        v-else-if="streamUrl && playing && !useVideo"
         :src="streamUrl"
         class="player-stream"
         alt="Live stream"
