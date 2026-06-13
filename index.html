@@ -2,6 +2,12 @@
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      var ua = navigator.userAgent;
+      if (ua.indexOf('iTVT Desktop App') === -1 && window.location.search.indexOf('proxy=') === -1) {
+        window.location.replace('https://vod.itvt.xyz');
+      }
+    </script>
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon.ico" />
