@@ -9,18 +9,19 @@ fi
 MSG="$1"
 THIS_DIR="$(cd "$(dirname "$0")" && pwd)"
 DIST_DIR="$THIS_DIR/dist"
-TARGET_REPO="https://github.com/open-itvt/desktop-app-debug-dist.git"
+TARGET_REPO="https://github.com/open-itvt/desktop-app-dist.git"
+TARGET_BRANCH="debug"
 TMP_DIR=$(mktemp -d)
 
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-echo "=== Cloning target repo (shallow, depth=1) ==="
-git clone --depth 1 "$TARGET_REPO" "$TMP_DIR/repo" 2>/dev/null || {
-  echo "=== Repo not found — initializing fresh ==="
-  mkdir -p "$TMP_DIR/repo"
+echo "=== Cloning target repo (shallow, depth=1, branch=$TARGET_BRANCH) ==="
+git clone --depth 1 --branch "$TARGET_BRANCH" "$TARGET_REPO" "$TMP_DIR/repo" 2>/dev/null || {
+  echo "=== Branch '$TARGET_BRANCH' not found — cloning main and creating ==="
+  git clone --depth 1 "$TARGET_REPO" "$TMP_DIR/repo"
   cd "$TMP_DIR/repo"
-  git init
-  git checkout -b main 2>/dev/null || true
+  git checkout -b "$TARGET_BRANCH" 2>/dev/null || true
+  cd - >/dev/null
 }
 
 cd "$TMP_DIR/repo"
@@ -43,11 +44,10 @@ git commit -m "$MSG" 2>/dev/null || git commit --allow-empty -m "$MSG"
 
 echo "=== Force pushing ==="
 source "$THIS_DIR/.env" 2>/dev/null || true
-REPO_WITH_TOKEN="https://Klubuntu:${GITHUB_TOKEN:-}@github.com/open-itvt/desktop-app-debug-dist.git"
-git push "$REPO_WITH_TOKEN" HEAD:main --force 2>/dev/null || {
-  echo "=== Push failed — repo may not exist. Create it first:"
-  echo "   https://github.com/new?owner=open-itvt&name=desktop-app-debug-dist"
+REPO_WITH_TOKEN="https://Klubuntu:${GITHUB_TOKEN:-}@github.com/open-itvt/desktop-app-dist.git"
+git push "$REPO_WITH_TOKEN" HEAD:"$TARGET_BRANCH" --force 2>/dev/null || {
+  echo "=== Push failed — check token permissions"
   exit 1
 }
 
-echo "=== Done — desktop-app-debug.itvt.xyz ==="
+echo "=== Done — pushed to $TARGET_BRANCH branch ==="
