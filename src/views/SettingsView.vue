@@ -1,14 +1,39 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { SunIcon, MoonIcon, PaintBrushIcon, BellIcon, GlobeAltIcon, ShieldCheckIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { SunIcon, MoonIcon, PaintBrushIcon, BellIcon, GlobeAltIcon, ShieldCheckIcon, InformationCircleIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 import SectionHeader from '@/components/ui/SectionHeader.vue'
 import { useTheme } from '@/composables/useTheme'
+import { useChannel } from '@/composables/useChannel'
 
 const { theme, toggle } = useTheme()
+const { channel, set } = useChannel()
 
 const notifications = ref(true)
 const autoplay = ref(true)
 const showPrivacy = ref(false)
+const showRestartPrompt = ref(false)
+let pendingChannel: 'stable' | 'debug' | null = null
+
+function switchChannel(ch: 'stable' | 'debug') {
+  if (ch !== channel.value) {
+    pendingChannel = ch
+    showRestartPrompt.value = true
+  }
+}
+
+function confirmChannel() {
+  if (pendingChannel) {
+    set(pendingChannel)
+    showRestartPrompt.value = false
+    pendingChannel = null
+    window.location.reload()
+  }
+}
+
+function cancelChannel() {
+  showRestartPrompt.value = false
+  pendingChannel = null
+}
 </script>
 
 <template>
@@ -61,6 +86,24 @@ const showPrivacy = ref(false)
             <input v-model="autoplay" type="checkbox" />
             <span class="slider" />
           </label>
+        </div>
+      </section>
+
+      <section class="settings-group">
+        <div class="group-header">
+          <ArrowPathIcon class="group-icon" />
+          <h3>Aktualizacje</h3>
+        </div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Kanał aktualizacji</span>
+            <span class="setting-desc" v-if="channel === 'stable'">Tylko stabilne wersje (domyślny)</span>
+            <span class="setting-desc" v-else>Debug — wersje przedpremierowe z oznaczeniem -debug</span>
+          </div>
+          <div class="channel-toggle">
+            <button class="ch-btn" :class="{ active: channel === 'stable' }" @click="switchChannel('stable')">Stabilny</button>
+            <button class="ch-btn" :class="{ active: channel === 'debug' }" @click="switchChannel('debug')">Debug</button>
+          </div>
         </div>
       </section>
 
@@ -156,6 +199,31 @@ const showPrivacy = ref(false)
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Restart prompt -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showRestartPrompt" class="modal-overlay" @click.self="cancelChannel">
+          <div class="modal-card" style="max-width:400px;">
+            <div class="modal-header">
+              <h2 class="modal-title" style="color:var(--accent-red);">Zmień kanał</h2>
+              <button class="modal-close" @click="cancelChannel">
+                <XMarkIcon class="close-icon" />
+              </button>
+            </div>
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
+              <p style="font-size:14px;color:var(--text-main);line-height:1.5;">
+                Zmiana kanału na <strong>{{ pendingChannel === 'debug' ? 'Debug' : 'Stabilny' }}</strong> wymaga ponownego uruchomienia aplikacji. Kontynuować?
+              </p>
+              <div style="display:flex;gap:8px;">
+                <button class="text-btn" style="flex:1;text-align:center;padding:10px;" @click="cancelChannel">Anuluj</button>
+                <button class="text-btn" style="flex:1;text-align:center;padding:10px;background:var(--accent-red);color:#fff;border-color:var(--accent-red);" @click="confirmChannel">Uruchom ponownie</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -188,18 +256,22 @@ const showPrivacy = ref(false)
 .theme-toggle.light .toggle-icon.moon { color: var(--text-dark); }
 .toggle-thumb { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-red); top: 2px; left: 2px; transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 .toggle-thumb.right { transform: translateX(28px); }
+
+.channel-toggle { display:flex; gap:4px; flex-shrink:0; }
+.ch-btn { padding:6px 14px; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); background:transparent; color:var(--text-muted); font-size:12px; font-weight:500; cursor:pointer; transition:all 0.2s; }
+.ch-btn.active { background:var(--accent-red); border-color:var(--accent-red); color:#fff; }
+.ch-btn:hover:not(.active) { filter:brightness(1.1); }
 .modal-overlay { position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: flex-start; padding: 60px 16px; overflow-y: auto; }
 .privacy-card { max-width: 600px; width: 100%; }
 .privacy-card .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.privacy-card .modal-title { font-size: 20px; font-weight: 700; color: var(--text-main); }
+.privacy-card .modal-title { font-size: 20px; font-weight: 700; color: var(--accent-red); }
 .privacy-card .modal-close { width: 32px; height: 32px; border: 1px solid var(--border-subtle); border-radius: 50%; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .privacy-card .modal-close:hover { filter: brightness(1.1); }
 .close-icon { width: 18px; height: 18px; }
-.privacy-body { font-size: 13px; line-height: 1.6; color: var(--text-main); max-height: 60vh; overflow-y: auto; padding-right: 4px; }
+.privacy-body { font-size: 13px; line-height: 1.6; color: var(--text-main); max-height: 60vh; overflow-y: auto; padding-right: 4px; background: var(--bg-card); border-radius: var(--radius-sm); padding: 12px; }
 .privacy-body h3 { font-size: 14px; font-weight: 700; margin: 16px 0 6px; color: var(--accent-red); }
-.privacy-body p { margin: 4px 0; color: var(--text-muted); }
-.privacy-body ul { margin: 6px 0; padding-left: 20px; color: var(--text-muted); }
-.privacy-body li { margin: 4px 0; }
+.privacy-body p, .privacy-body ul, .privacy-body li { margin: 4px 0; color: var(--text-muted); }
+.privacy-body ul { padding-left: 20px; }
 .privacy-body code { font-size: 12px; background: var(--bg-main); padding: 1px 6px; border-radius: 3px; color: var(--accent-red); }
 .privacy-footer { margin-top: 16px; font-size: 11px; color: var(--text-dark); text-align: center; border-top: 1px solid var(--border-subtle); padding-top: 12px; }
 .modal-enter-active, .modal-leave-active { transition: opacity 0.2s ease; }
