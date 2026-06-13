@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import DebugConsole from '@/components/ui/DebugConsole.vue'
+import { useErrorCapture } from '@/composables/useErrorCapture'
 
 const router = useRouter()
+const { start, stop } = useErrorCapture()
 
 const visible = ref(false)
 const x = ref(0)
 const y = ref(0)
+const showDebug = ref(false)
 
 interface MenuItem {
   label: string
@@ -16,8 +20,21 @@ interface MenuItem {
 const items: MenuItem[] = [
   { label: 'Wstecz', action: () => router.back() },
   { label: 'Odśwież', action: () => window.location.reload() },
+  { label: 'Debuguj błędy', action: openDebug },
   { label: 'Zrzut ekranu', action: takeScreenshot },
 ]
+
+onMounted(() => {
+  start()
+  document.addEventListener('contextmenu', onContextMenu)
+  document.addEventListener('click', onClickOutside)
+})
+
+onUnmounted(() => {
+  stop()
+  document.removeEventListener('contextmenu', onContextMenu)
+  document.removeEventListener('click', onClickOutside)
+})
 
 function onContextMenu(e: MouseEvent) {
   e.preventDefault()
@@ -35,14 +52,15 @@ function exec(item: MenuItem) {
   item.action()
 }
 
+function openDebug() {
+  showDebug.value = true
+}
+
 async function takeScreenshot() {
   try {
     const html2canvas = (await import('html2canvas')).default
     const canvas = await html2canvas(document.body, {
-      backgroundColor: null,
-      scale: 1,
-      useCORS: true,
-      logging: false,
+      backgroundColor: null, scale: 1, useCORS: true, logging: false,
     })
     const link = document.createElement('a')
     link.download = `itvt-${Date.now()}.png`
@@ -52,16 +70,6 @@ async function takeScreenshot() {
     console.error('Screenshot failed:', e)
   }
 }
-
-onMounted(() => {
-  document.addEventListener('contextmenu', onContextMenu)
-  document.addEventListener('click', onClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('contextmenu', onContextMenu)
-  document.removeEventListener('click', onClickOutside)
-})
 </script>
 
 <template>
@@ -70,18 +78,15 @@ onUnmounted(() => {
       <div v-if="visible">
         <div class="ctx-backdrop" @click="onClickOutside" />
         <div class="ctx-menu" :style="{ left: x + 'px', top: y + 'px' }">
-          <div
-            v-for="(item, i) in items"
-            :key="i"
-            class="ctx-item"
-            @click="exec(item)"
-          >
+          <div v-for="(item, i) in items" :key="i" class="ctx-item" @click="exec(item)">
             {{ item.label }}
           </div>
         </div>
       </div>
     </Transition>
   </Teleport>
+
+  <DebugConsole v-if="showDebug" @close="showDebug = false" />
 </template>
 
 <style scoped>
