@@ -32,6 +32,7 @@ const { profile } = useProfile()
 const clock = ref('')
 let intervalId: ReturnType<typeof setInterval> | undefined
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
+const isMac = navigator.userAgent.indexOf('Mac') !== -1
 
 function updateClock() {
   const now = new Date()
@@ -202,7 +203,7 @@ function goBack() {
       </div>
       <div class="topbar-right">
         <span class="clock">{{ clock }}</span>
-        <button class="icon-btn" @click="toggleFullscreen" :title="isFullscreen ? 'Pełny ekran (F11)' : 'Pełny ekran (F11)'">
+        <button v-if="!isMac" class="icon-btn" @click="toggleFullscreen" :title="isFullscreen ? 'Pełny ekran (F11)' : 'Pełny ekran (F11)'">
           <ArrowsPointingOutIcon v-if="!isFullscreen" class="icon" />
           <ArrowsPointingInIcon v-else class="icon" />
         </button>
