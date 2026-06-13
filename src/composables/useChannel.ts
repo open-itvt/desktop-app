@@ -25,6 +25,9 @@ export function useChannel() {
   }
 
   function restart() {
+    try {
+      sessionStorage.setItem('itvt_return_path', window.location.hash || '/settings')
+    } catch { /* ignore */ }
     window.location.reload()
   }
 

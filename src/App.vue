@@ -13,6 +13,15 @@ useConnectivity()
 
 onMounted(() => {
   document.addEventListener('keydown', blockSelectAll)
+
+  // Restore route after channel switch reload
+  try {
+    const saved = sessionStorage.getItem('itvt_return_path')
+    if (saved && saved !== window.location.hash) {
+      sessionStorage.removeItem('itvt_return_path')
+      window.location.hash = saved
+    }
+  } catch { /* ignore */ }
   setTimeout(() => {
     const splash = document.getElementById('splash')
     if (splash) splash.classList.add('hidden')
