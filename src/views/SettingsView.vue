@@ -276,7 +276,8 @@ function cancelChannel() {
 .modal-enter-from, .modal-leave-to { opacity: 0; }
 
 /* Restart modal */
-.restart-card { max-width: 400px; }
+.restart-card { max-width: 400px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; }
+.restart-card .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .restart-title { font-size: 20px; font-weight: 700; color: var(--accent-red); }
 .restart-body { display: flex; flex-direction: column; gap: 16px; }
 .restart-text { font-size: 14px; color: var(--text-main); line-height: 1.5; }
