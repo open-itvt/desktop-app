@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useChannel } from '@/composables/useChannel'
 import { useTheme } from '@/composables/useTheme'
 import { useDeepLink } from '@/composables/useDeepLink'
@@ -13,28 +13,37 @@ useDeepLink()
 useConnectivity()
 
 const { channel } = useChannel()
-
-// If we are inside an iframe (remote page loaded by the Tauri wrapper),
-// show the full app with TopBar + Sidebar + router-view.
-// If we are top‑level (in the Tauri webview directly), show the iframe wrapper
-// that loads the remote page.
 const isInsideIframe = window.self !== window.top
+const iframeUrl = ref('')
 
-const appUrl = computed(() => {
-  const params = new URLSearchParams(window.location.search)
-  const proxyPort = params.get('proxy') || ''
-  const base = channel.value === 'debug'
-    ? 'https://desktop-app-debug.itvt.xyz'
-    : 'https://desktop-app.itvt.xyz'
-  return proxyPort ? `${base}?proxy=${proxyPort}` : base
-})
-
-onMounted(() => {
+onMounted(async () => {
   document.addEventListener('keydown', blockSelectAll)
+
+  // Hide splash after a short delay
   setTimeout(() => {
     const splash = document.getElementById('splash')
     if (splash) splash.classList.add('hidden')
   }, 300)
+
+  // Get proxy port and build iframe URL
+  if (!isInsideIframe) {
+    let proxyPort = ''
+    try {
+      const { invoke } = await import('@tauri-apps/api/core')
+      const port = await invoke<number>('get_proxy_port')
+      if (port > 0) proxyPort = String(port)
+    } catch {
+      // Fallback: read from query param (dev mode)
+      const params = new URLSearchParams(window.location.search)
+      proxyPort = params.get('proxy') || ''
+    }
+
+    const base = channel.value === 'debug'
+      ? 'https://desktop-app-debug.itvt.xyz'
+      : 'https://desktop-app.itvt.xyz'
+
+    iframeUrl.value = proxyPort ? `${base}?proxy=${proxyPort}` : base
+  }
 })
 
 function blockSelectAll(e: KeyboardEvent) {
@@ -45,7 +54,7 @@ function blockSelectAll(e: KeyboardEvent) {
 <template>
   <!-- Tauri wrapper (top‑level): load remote content in iframe -->
   <div v-if="!isInsideIframe" class="iframe-shell">
-    <iframe :src="appUrl" class="app-iframe" allowfullscreen allow="autoplay; encrypted-media; fullscreen" />
+    <iframe v-if="iframeUrl" :src="iframeUrl" class="app-iframe" allowfullscreen allow="autoplay; encrypted-media; fullscreen" />
     <ContextMenu />
   </div>
 
