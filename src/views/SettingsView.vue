@@ -14,8 +14,10 @@ const showPrivacy = ref(false)
 const showRestartPrompt = ref(false)
 const showClearPrompt = ref(false)
 const versionLabel = computed(() => {
-  const host = window.location.hostname
-  return host.includes('debug') ? '2.0.0 (Debug)' : '2.0.0'
+  try {
+    const host = window.location.hostname
+    return host && host.includes('debug') ? '2.0.0 (Debug)' : '2.0.0'
+  } catch { return '2.0.0' }
 })
 let pendingChannel: 'stable' | 'debug' | null = null
 
@@ -160,7 +162,7 @@ function clearCache() {
             <span class="setting-label">Polityka prywatności</span>
             <span class="setting-desc">Dowiedz się, jak przetwarzamy Twoje dane</span>
           </div>
-          <button class="text-btn" @click="showPrivacy = true">Przeglądaj</button>
+          <button class="text-btn" @click="showPrivacy = true">Przeczytaj</button>
         </div>
       </section>
 
