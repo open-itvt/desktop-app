@@ -25,10 +25,16 @@
       "csp": "default-src 'self'; script-src 'self' https://desktop-app.itvt.xyz; style-src 'self' 'unsafe-inline' https://desktop-app.itvt.xyz; connect-src 'self' http://127.0.0.1:* http://localhost:* https://desktop-app.itvt.xyz https://tauri.localhost ipc:; img-src 'self' http://127.0.0.1:* http://localhost:* https://desktop-app.itvt.xyz data:; font-src 'self' https://fonts.gstatic.com https://desktop-app.itvt.xyz"
     }
   },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["itvt"]
+      }
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",
-    "urlSchemes": ["itvt"],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

@@ -4,8 +4,10 @@ import TopBar from '@/components/layout/TopBar.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import { useTheme } from '@/composables/useTheme'
+import { useDeepLink } from '@/composables/useDeepLink'
 
 useTheme()
+useDeepLink()
 
 onMounted(() => {
   document.addEventListener('keydown', blockSelectAll)
