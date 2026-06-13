@@ -61,7 +61,7 @@ jobs:
           name: itvt-windows
           path: staging/windows/*
 
-  build-macos:
+  build-macos-arm:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -82,8 +82,10 @@ jobs:
           cp src-tauri/target/release/bundle/dmg/*.dmg staging/macos/dmg/ 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         with:
-          name: itvt-macos
+          name: itvt-macos-arm
           path: staging/macos/*
+
+  build-macos-intel:
 
   build-linux:
     runs-on: ubuntu-22.04
