@@ -31,17 +31,8 @@ const JUTRO_DATA: ChannelData[] = [
       { time: '20:00', title: 'Oliwier na Żywo', category: 'Rozrywka', duration: '150', isLive: true },
     ],
   },
-  {
-    name: 'iTVT Now', icon: 'iN',
-    programs: [
-      { time: '07:30', title: 'Poranny Przegląd', category: 'Informacje', duration: '45', isLive: false },
-      { time: '12:00', title: 'Studio Południowe', category: 'Lifestyle', duration: '60', isLive: false },
-      { time: '19:30', title: 'Wiadomości', category: 'Informacje', duration: '30', isLive: true },
-      { time: '22:00', title: 'Kino Nocne', category: 'Film', duration: '120', isLive: false },
-    ],
-  },
 ]
-
+ 
 const channels = computed(() => activeDay.value === 'dzis' ? MOCK_CHANNELS_DATA : JUTRO_DATA)
 const allCategories = computed(() => [...new Set(channels.value.flatMap(ch => ch.programs.map(p => p.category)))])
 
