@@ -24,7 +24,14 @@ onMounted(async () => {
     if (p) proxyPort = p
   }
 
-  // Navigate to remote app — direct navigation, no iframe
+  // Navigate to remote app only if on local/embedded page
+  const host = window.location.hostname
+  if (host.includes('desktop-app') || host.includes('itvt.xyz')) {
+    // Already on remote page — do nothing, let the remote app handle itself
+    return
+  }
+
+  // On embedded page — navigate to the remote URL
   const target = proxyPort ? `${remoteBase}?proxy=${proxyPort}` : remoteBase
   window.location.href = target
 })
