@@ -211,6 +211,7 @@ fn platform_json() -> &'static str {
     else { r#"{"platform":"macos"}"# }
 }
 
+#[allow(dead_code)]
 pub struct AppProxy {
     pub port: u16,
     pub player: Arc<Mutex<Option<HlsPlayer>>>,
