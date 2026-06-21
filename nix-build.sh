@@ -5,7 +5,7 @@ echo "=== Building iTVT with Nix ==="
 cd "$(dirname "$0")"
 
 # Enter nix shell and build
-nix-shell --pure --run "
+nix-shell --run "
   echo '=== Nix shell ready ==='
   pnpm install --frozen-lockfile
   pnpm tauri build
