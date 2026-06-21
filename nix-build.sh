@@ -8,7 +8,8 @@ cd "$(dirname "$0")"
 nix-shell --run "
   echo '=== Nix shell ready ==='
   pnpm install --frozen-lockfile
-  pnpm tauri build
+  # Skip AppImage — xdg-mime not available on NixOS
+  pnpm tauri build --bundles deb,rpm
   echo '=== Build complete ==='
   ls -la src-tauri/target/release/bundle/
 "
