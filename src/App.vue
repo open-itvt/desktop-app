@@ -1,45 +1,53 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useChannel } from '@/composables/useChannel'
+import TopBar from '@/components/layout/TopBar.vue'
+import Sidebar from '@/components/layout/Sidebar.vue'
+import ContextMenu from '@/components/ui/ContextMenu.vue'
+import { useTheme } from '@/composables/useTheme'
+import { useDeepLink } from '@/composables/useDeepLink'
+import { useConnectivity } from '@/composables/useConnectivity'
 
-const { channel } = useChannel()
+useTheme()
+useDeepLink()
+useConnectivity()
 
-const remoteBase = channel.value === 'debug'
-  ? 'https://desktop-app-debug.itvt.xyz'
-  : 'https://desktop-app.itvt.xyz'
-
-onMounted(async () => {
-  // Get proxy port — with timeout to prevent hanging
-  let proxyPort = ''
-  try {
-    const { invoke } = await import('@tauri-apps/api/core')
-    const result = await Promise.race([
-      invoke<number>('get_proxy_port'),
-      new Promise<null>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
-    ])
-    if (result && result > 0) proxyPort = String(result)
-  } catch {
-    const p = new URLSearchParams(window.location.search).get('proxy')
-    if (p) proxyPort = p
-  }
-
-  // Navigate to remote app only if on local/embedded page
-  const host = window.location.hostname
-  if (host.includes('desktop-app') || host.includes('itvt.xyz')) {
-    // Already on remote page — let the remote app handle itself
-    return
-  }
-
-  // On embedded page — navigate to the remote URL
-  const target = proxyPort ? `${remoteBase}?proxy=${proxyPort}` : remoteBase
-  window.location.href = target
+onMounted(() => {
+  document.addEventListener('keydown', blockSelectAll)
+  setTimeout(() => {
+    const splash = document.getElementById('splash')
+    if (splash) splash.classList.add('hidden')
+  }, 300)
 })
+
+function blockSelectAll(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'a') e.preventDefault()
+}
 </script>
 
 <template>
-  <div />
+  <div class="app-layout">
+    <TopBar class="app-topbar" />
+    <Sidebar class="app-sidebar" />
+    <main class="app-main">
+      <router-view />
+    </main>
+    <ContextMenu />
+  </div>
 </template>
 
 <style scoped>
-/* Empty bridge component — navigation happens in onMounted */
+.app-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--topbar-height) 1fr;
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar main";
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-main);
+}
+.app-topbar { grid-area: topbar; z-index: 100; }
+.app-sidebar { grid-area: sidebar; z-index: 90; }
+.app-main { grid-area: main; overflow-y: auto; overflow-x: hidden; }
 </style>
