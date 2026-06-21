@@ -12,7 +12,8 @@
         // Desktop app or dev mode — load splash + vue normally
       } else {
         // Browser — try to open the installed app first
-        document.getElementById('splash-open-text').style.display = '';
+        var el = document.getElementById('splash-open-text');
+        if (el) el.style.display = '';
         setTimeout(function() {
           window.location.replace('https://vod.itvt.xyz');
         }, 3000);
