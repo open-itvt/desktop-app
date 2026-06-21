@@ -9,12 +9,15 @@ const remoteBase = channel.value === 'debug'
   : 'https://desktop-app.itvt.xyz'
 
 onMounted(async () => {
-  // Get proxy port
+  // Get proxy port — with timeout to prevent hanging
   let proxyPort = ''
   try {
     const { invoke } = await import('@tauri-apps/api/core')
-    const port = await invoke<number>('get_proxy_port')
-    if (port > 0) proxyPort = String(port)
+    const result = await Promise.race([
+      invoke<number>('get_proxy_port'),
+      new Promise<null>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+    ])
+    if (result && result > 0) proxyPort = String(result)
   } catch {
     const p = new URLSearchParams(window.location.search).get('proxy')
     if (p) proxyPort = p
@@ -28,7 +31,6 @@ onMounted(async () => {
   }
 
   // On embedded page — navigate to the remote URL
-  // Splash stays visible (index.html handles it) until navigation completes
   const target = proxyPort ? `${remoteBase}?proxy=${proxyPort}` : remoteBase
   window.location.href = target
 })
