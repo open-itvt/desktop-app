@@ -9,10 +9,6 @@ const remoteBase = channel.value === 'debug'
   : 'https://desktop-app.itvt.xyz'
 
 onMounted(async () => {
-  // Hide splash
-  const splash = document.getElementById('splash')
-  if (splash) splash.classList.add('hidden')
-
   // Get proxy port
   let proxyPort = ''
   try {
@@ -27,11 +23,12 @@ onMounted(async () => {
   // Navigate to remote app only if on local/embedded page
   const host = window.location.hostname
   if (host.includes('desktop-app') || host.includes('itvt.xyz')) {
-    // Already on remote page — do nothing, let the remote app handle itself
+    // Already on remote page — let the remote app handle itself
     return
   }
 
   // On embedded page — navigate to the remote URL
+  // Splash stays visible (index.html handles it) until navigation completes
   const target = proxyPort ? `${remoteBase}?proxy=${proxyPort}` : remoteBase
   window.location.href = target
 })
