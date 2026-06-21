@@ -214,6 +214,7 @@ fn platform_json() -> &'static str {
 #[allow(dead_code)]
 pub struct AppProxy {
     pub port: u16,
+    #[allow(dead_code)]
     pub player: Arc<Mutex<Option<HlsPlayer>>>,
     _http_thread: Option<thread::JoinHandle<()>>,
 }

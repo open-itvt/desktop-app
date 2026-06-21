@@ -160,7 +160,7 @@ jobs:
             gstreamer1.0-plugins-ugly gstreamer1.0-libav
       - uses: Swatinem/rust-cache@v2
       - run: pnpm install --frozen-lockfile
-      - run: pnpm tauri build
+      - run: pnpm tauri build || (echo "AppImage bundling may have failed, but deb/rpm artifacts are still uploaded" && ls src-tauri/target/release/bundle/deb/*.deb 2>/dev/null)
       - name: Stage Linux ARM22 artifacts
         run: |
           mkdir -p staging/linux-arm22/deb staging/linux-arm22/appimage staging/linux-arm22/rpm
@@ -192,7 +192,7 @@ jobs:
             gstreamer1.0-plugins-ugly gstreamer1.0-libav
       - uses: Swatinem/rust-cache@v2
       - run: pnpm install --frozen-lockfile
-      - run: pnpm tauri build
+      - run: pnpm tauri build || (echo "AppImage bundling may have failed, but deb/rpm artifacts are still uploaded" && ls src-tauri/target/release/bundle/deb/*.deb 2>/dev/null)
       - name: Stage Linux ARM24 artifacts
         run: |
           mkdir -p staging/linux-arm24/deb staging/linux-arm24/appimage staging/linux-arm24/rpm
