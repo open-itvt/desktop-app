@@ -113,6 +113,12 @@
       }
     }
 
+    function retryConnection() {
+      toggleOffline(false);
+      // Let the connectivity check re-detect state
+      setTimeout(function() { toggleOffline(); }, 1000);
+    }
+
     window.addEventListener('offline', function() { toggleOffline(true); });
     window.addEventListener('online', function() { toggleOffline(false); });
 
@@ -136,7 +142,7 @@
         <div class="offline-logo">iTVT</div>
         <div class="offline-msg">Błąd połączenia</div>
         <div class="offline-sub">z internetem / serwerem</div>
-        <div class="offline-btn" onclick="top.location.reload()">Spróbuj ponownie</div>
+        <div class="offline-btn" onclick="retryConnection()">Spróbuj ponownie</div>
       </div>
     </div>
     <div id="app"></div>
