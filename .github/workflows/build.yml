@@ -145,6 +145,33 @@ jobs:
           name: itvt-linux-x86
           path: staging/linux-x86/*/*
 
+  build-linux-nix:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@9 --activate
+      - uses: cachix/install-nix-action@v30
+        with:
+          nix_path: nixpkgs=channel:nixpkgs-unstable
+      - uses: dtolnay/rust-toolchain@stable
+      - run: pnpm install --frozen-lockfile
+      - name: Build with Nix
+        run: |
+          nix-shell --run "pnpm tauri build"
+      - name: Stage Nix artifacts
+        run: |
+          mkdir -p staging/linux-nix
+          cp src-tauri/target/release/bundle/deb/*.deb staging/linux-nix/ 2>/dev/null || true
+          cp src-tauri/target/release/bundle/appimage/*.AppImage staging/linux-nix/ 2>/dev/null || true
+          cp src-tauri/target/release/bundle/rpm/*.rpm staging/linux-nix/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: itvt-linux-nix
+          path: staging/linux-nix/*
+
   build-linux-arm-22:
     runs-on: ubuntu-22.04-arm
     steps:
@@ -211,7 +238,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-    needs: [build-windows, build-macos-arm, build-macos-intel, build-linux, build-linux-arm-22, build-linux-arm-24]
+    needs: [build-windows, build-macos-arm, build-macos-intel, build-linux, build-linux-nix, build-linux-arm-22, build-linux-arm-24]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -247,6 +274,7 @@ jobs:
             artifacts/itvt-macos-arm/**/*
             artifacts/itvt-macos-intel/**/*
             artifacts/itvt-linux-x86/**/*
+            artifacts/itvt-linux-nix/**/*
             artifacts/itvt-linux-arm22/**/*
             artifacts/itvt-linux-arm24/**/*
         env:
