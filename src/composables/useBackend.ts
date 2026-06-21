@@ -1,9 +1,7 @@
-// Backend abstraction:
-//  1. Try IPC (local Tauri builds — works with embedded frontend)
-//  2. Fallback to ?proxy= query param (dev mode, remote pages)
+import { ref } from 'vue'
 
 let proxyBase = ''
-let platform: 'linux' | 'windows' | 'macos' | 'unknown' = 'unknown'
+const platform = ref<'linux' | 'windows' | 'macos' | 'unknown'>('unknown')
 let resolved = false
 
 async function resolve() {
@@ -19,7 +17,7 @@ async function resolve() {
       const res = await fetch(`${proxyBase}/api/status`, { signal: AbortSignal.timeout(2000) })
       if (res.ok) {
         const data = await res.json()
-        platform = data.platform || 'unknown'
+        platform.value = data.platform || 'unknown'
         return
       }
     }
@@ -34,16 +32,17 @@ async function resolve() {
   try {
     const res = await fetch(`${proxyBase}/api/status`)
     const data = await res.json()
-    platform = data.platform || 'unknown'
+    platform.value = data.platform || 'unknown'
   } catch { /* ignore */ }
 }
 
-export function isLinux(): boolean { return platform === 'linux' }
+export function isLinux(): boolean { return platform.value === 'linux' }
+export function getPlatform() { return platform }
 
 export async function startPlayer(url: string): Promise<void> {
   await resolve()
   if (!proxyBase) throw new Error('no proxy')
-  if (platform !== 'linux') return
+  if (platform.value !== 'linux') return
   const res = await fetch(`${proxyBase}/api/player/start`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -57,13 +56,13 @@ export async function startPlayer(url: string): Promise<void> {
 
 export async function stopPlayer(): Promise<void> {
   await resolve()
-  if (!proxyBase || platform !== 'linux') return
+  if (!proxyBase || platform.value !== 'linux') return
   await fetch(`${proxyBase}/api/player/stop`, { method: 'POST' }).catch(() => {})
 }
 
 export async function captureSnapshot(url: string): Promise<string> {
   await resolve()
-  if (!proxyBase || platform !== 'linux') throw new Error('snapshot not supported on this platform')
+  if (!proxyBase || platform.value !== 'linux') throw new Error('snapshot not supported on this platform')
   const res = await fetch(`${proxyBase}/api/snapshot?url=${encodeURIComponent(url)}`)
   if (!res.ok) throw new Error(`snapshot failed: HTTP ${res.status}`)
   const data = await res.json()
