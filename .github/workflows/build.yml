@@ -18,6 +18,7 @@ permissions:
 
 env:
   APP_NAME: iTVT
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-windows:
