@@ -24,8 +24,7 @@ echo "=== Pakuje ($(stat -c%s "$BINARY") bajtow) ==="
 BOUNDARY="__ITVT_ARCHIVE__"
 
 cat > "$OUTPUT" << 'EOF'
-#!/usr/bin/env nix-shell
-#!nix-shell -i bash -p nixGL
+#!/usr/bin/env bash
 # iTVT AppBundle — self-extracting one-file launcher for NixOS
 
 set -euo pipefail
@@ -68,7 +67,7 @@ export WEBKIT_DISABLE_COMPOSITING_MODE=1
 export WEBKIT_DISABLE_DMABUF_RENDERER=1
 export WEBKIT_USE_GL=software
 
-exec nixGL "$TMP_DIR/desktop-app"
+exec nix run --impure github:nix-community/nixGL -- "$TMP_DIR/desktop-app"
 EOF
 
 echo "$BOUNDARY" >> "$OUTPUT"
