@@ -25,17 +25,16 @@ if [ ! -f "$BINARY" ]; then
   echo "=== Zbudowano: $BINARY ==="
 fi
 
-# Ścieżki do pluginów GStreamera z nixpkgs
-GST_LIB=""
-for p in gst_all_1.gstreamer gst_all_1.gst-plugins-base gst_all_1.gst-plugins-good \
-         gst_all_1.gst-plugins-bad gst_all_1.gst-plugins-ugly gst_all_1.gst-libav; do
-  d="$(nix eval --impure "nixpkgs#$p" --raw 2>/dev/null || true)"
-  [ -n "$d" ] && [ -d "$d/lib/gstreamer-1.0" ] && GST_LIB="${GST_LIB:+$GST_LIB:}$d/lib/gstreamer-1.0"
+# GStreamer — znajdź pluginy w systemowym profilu NixOS
+GST_DIRS=""
+for d in /run/current-system/sw/lib/gstreamer-1.0 \
+         /nix/var/nix/profiles/default/lib/gstreamer-1.0 \
+         ~/.nix-profile/lib/gstreamer-1.0; do
+  [ -d "$d" ] && GST_DIRS="${GST_DIRS:+$GST_DIRS:}$d"
 done
 
-export GST_PLUGIN_SYSTEM_PATH="$GST_LIB"
-export GST_PLUGIN_PATH="$GST_LIB"
-export GST_REGISTRY_REUSE_PLUGIN_SCANNER="no"
+export GST_PLUGIN_SYSTEM_PATH="$GST_DIRS"
+export GST_PLUGIN_PATH="$GST_DIRS"
 export WEBKIT_DISABLE_COMPOSITING_MODE=1
 export WEBKIT_DISABLE_DMABUF_RENDERER=1
 export WEBKIT_USE_GL=software
