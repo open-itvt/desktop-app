@@ -2,7 +2,6 @@ use std::panic;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
 
 use tiny_http::{Header, Response, ResponseBox, Server, StatusCode};
 
