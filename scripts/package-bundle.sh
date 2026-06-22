@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Pakuje binarke desktop-app w jeden plik .sh (self-extracting archive)
 # Uzycie: bash scripts/package-bundle.sh [sciezka-do-binarki]
-# Wynik: iTVT-2.0.0-x86_64-linux.AppBundle.sh (jeden plik do dystrybucji)
+# Wynik: iTVT-2.0.0-x86_64-linux.run (jeden plik do dystrybucji)
 
 set -euo pipefail
 
@@ -17,7 +17,7 @@ fi
 
 VERSION="2.0.0-nixos"
 ARCH="$(uname -m)"
-OUTPUT="$PROJECT_DIR/iTVT-${VERSION}-${ARCH}-linux.AppBundle.sh"
+OUTPUT="$PROJECT_DIR/iTVT-${VERSION}-${ARCH}-linux.run"
 
 echo "=== Pakuje ($(stat -c%s "$BINARY") bajtow) ==="
 
