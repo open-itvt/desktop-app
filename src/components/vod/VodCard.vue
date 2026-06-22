@@ -12,6 +12,7 @@ const props = defineProps<{
 
 const router = useRouter()
 const BKS_KEY = 'ivod_bookmarks'
+const imgError = ref(false)
 
 function isBookmarked(): boolean {
   try {
