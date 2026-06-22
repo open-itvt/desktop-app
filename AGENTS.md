@@ -9,8 +9,10 @@
 - Debug features (wizualne wskaźniki, logowanie, testy) TYLKO na branchu debug.
 
 ## Deploy
-- `deploy-dist.sh` → deploy na **main** branch repozytorium dist.
-- `deploy-dist-debug.sh` → deploy na **debug** branch repozytorium dist.
+- `scripts/deploy-dist.sh` → deploy na **main** branch repozytorium dist.
+- `scripts/deploy-dist-debug.sh` → deploy na **debug** branch repozytorium dist.
+- `scripts/nix-build.sh` → build na NixOS
+- `itvt.sh` → one‑file launcher dla NixOS (umieść obok binarki)
 - Nie robimy deploy na oba naraz, chyba że wyraźnie polecone.
 
 ## Program data
