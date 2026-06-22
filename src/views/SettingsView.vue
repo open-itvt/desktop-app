@@ -13,7 +13,7 @@ const autoplay = ref(true)
 const showPrivacy = ref(false)
 const showRestartPrompt = ref(false)
 const showClearPrompt = ref(false)
-const versionLabel = computed(() => channel.value === 'debug' ? '2.0.0 (Debug)' : '2.0.0')
+const versionLabel = computed(() => channel.value === 'debug' ? '2.0.1 (Debug)' : '2.0.1')
 let pendingChannel: 'stable' | 'debug' | null = null
 
 function switchChannel(ch: 'stable' | 'debug') {
