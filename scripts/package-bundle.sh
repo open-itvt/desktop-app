@@ -15,7 +15,7 @@ if [ ! -f "$BINARY" ]; then
   exit 1
 fi
 
-VERSION="2.0.0-nixos"
+VERSION="$(node -p "require('$PROJECT_DIR/package.json').version")-nixos"
 ARCH="$(uname -m)"
 OUTPUT="$PROJECT_DIR/iTVT-${VERSION}-${ARCH}-linux.run"
 
