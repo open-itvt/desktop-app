@@ -15,7 +15,7 @@ if [ ! -f "$BINARY" ]; then
   exit 1
 fi
 
-VERSION="$("$BINARY" --version 2>/dev/null || echo "2.0.0")"
+VERSION="2.0.0-nixos"
 ARCH="$(uname -m)"
 OUTPUT="$PROJECT_DIR/iTVT-${VERSION}-${ARCH}-linux.AppBundle.sh"
 
@@ -25,7 +25,7 @@ BOUNDARY="__ITVT_ARCHIVE__"
 
 cat > "$OUTPUT" << 'EOF'
 #!/usr/bin/env nix-shell
-#!nix-shell -i bash -p nixpkgs.nixGL
+#!nix-shell -i bash -p nixGL
 # iTVT AppBundle — self-extracting one-file launcher for NixOS
 
 set -euo pipefail

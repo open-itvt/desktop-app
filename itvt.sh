@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i bash -p nixpkgs.nixGL
+#!nix-shell -i bash -p nixGL
 
 # iTVT — one‑file launcher dla NixOS
 # Umieść ten plik obok binarki (np. po bash scripts/nix-build.sh) i uruchom:
