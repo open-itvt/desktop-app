@@ -52,8 +52,13 @@ chmod +x "$TMP_DIR/desktop-app"
 
 [ $EXTRACT_ONLY -eq 1 ] && { echo "Wyodrebniono do $TMP_DIR/desktop-app"; exit 0; }
 
-# GStreamer — znajdz pluginy w systemowym profilu NixOS
+# GStreamer env — nix eval first, then fallback to NixOS system paths
 GL=""
+for p in gst_all_1.gstreamer gst_all_1.gst-plugins-base gst_all_1.gst-plugins-good \
+         gst_all_1.gst-plugins-bad gst_all_1.gst-plugins-ugly gst_all_1.gst-libav; do
+  d="$(nix eval --impure "nixpkgs#$p" --raw 2>/dev/null || true)"
+  [ -n "$d" ] && [ -d "$d/lib/gstreamer-1.0" ] && GL="${GL:+$GL:}$d/lib/gstreamer-1.0"
+done
 for d in /run/current-system/sw/lib/gstreamer-1.0 \
          /nix/var/nix/profiles/default/lib/gstreamer-1.0 \
          ~/.nix-profile/lib/gstreamer-1.0; do
@@ -62,6 +67,7 @@ done
 
 export GST_PLUGIN_SYSTEM_PATH="$GL"
 export GST_PLUGIN_PATH="$GL"
+export GST_REGISTRY_REUSE_PLUGIN_SCANNER="no"
 export WEBKIT_DISABLE_COMPOSITING_MODE=1
 export WEBKIT_DISABLE_DMABUF_RENDERER=1
 export WEBKIT_USE_GL=software

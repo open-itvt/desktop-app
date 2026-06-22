@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { PlayIcon, BookmarkIcon, BookmarkSlashIcon, CalendarDaysIcon, EyeIcon } from '@heroicons/vue/24/outline'
 import type { VodItem } from '@/types'
-import { useCachedThumbnail } from '@/composables/useThumbnailCache'
 import { recordWatch } from '@/composables/useWatchHistory'
 
 const props = defineProps<{
@@ -12,12 +11,7 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
-const thumbSrc = ref('')
 const BKS_KEY = 'ivod_bookmarks'
-
-onMounted(async () => {
-  thumbSrc.value = await useCachedThumbnail(props.item.thumbnailUrl)
-})
 
 function isBookmarked(): boolean {
   try {
@@ -55,8 +49,8 @@ function openPlayer() {
   <div class="vod-card">
     <div class="card-thumbnail" @click="openPlayer">
       <img
-        v-if="thumbSrc"
-        :src="thumbSrc"
+        v-if="item.thumbnailUrl"
+        :src="item.thumbnailUrl"
         class="thumb-img"
         alt=""
         loading="lazy"
