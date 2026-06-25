@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Pakuje binarke desktop-app w jeden plik .sh (self-extracting archive)
-# Uzycie: bash scripts/package-bundle.sh [sciezka-do-binarki]
+# Uzycie: bash scripts/nix/package-bundle.sh [sciezka-do-binarki]
 # Wynik: iTVT-2.0.0-x86_64-linux.run (jeden plik do dystrybucji)
 
 set -euo pipefail
@@ -11,7 +11,7 @@ BINARY="${1:-$PROJECT_DIR/src-tauri/target/release/desktop-app}"
 
 if [ ! -f "$BINARY" ]; then
   echo "Blad: binarka nie znaleziona w $BINARY"
-  echo "Najpierw zbuduj: cd $PROJECT_DIR && bash scripts/nix-build.sh"
+  echo "Najpierw zbuduj: cd $PROJECT_DIR && bash scripts/nix/build.sh"
   exit 1
 fi
 

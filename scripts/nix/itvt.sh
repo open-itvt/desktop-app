@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # iTVT — one‑file launcher dla NixOS
-# Umieść ten plik obok binarki (np. po bash scripts/nix-build.sh) i uruchom:
+# Umieść ten plik obok binarki (np. po bash scripts/nix/build.sh) i uruchom:
 #   chmod +x itvt.sh && ./itvt.sh
 # Jeśli binarki nie ma obok, skrypt sam zbuduje aplikację.
 

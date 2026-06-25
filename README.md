@@ -57,13 +57,13 @@ pnpm tauri build
 
 ```bash
 # Budowa
-bash scripts/nix-build.sh
+bash scripts/nix/build.sh
 
 # Uruchomienie (1 plik)
-bash nix-itvt.sh
+bash scripts/nix/itvt.sh
 
 # Lub pakowanie do self-extracting .run
-bash scripts/package-bundle.sh
+bash scripts/nix/package-bundle.sh
 # Wynik: iTVT-2.0.0-nixos-x86_64-linux.run
 ```
 
@@ -71,9 +71,9 @@ bash scripts/package-bundle.sh
 
 | Skrypt | Opis |
 |--------|------|
-| `scripts/nix-build.sh` | Buduje aplikację na NixOS przez nix-shell |
-| `scripts/run.sh` | Uruchamia z GStreamer + nixGL |
-| `scripts/package-bundle.sh` | Pakuje binarkę w self-extracting .run |
+| `scripts/nix/build.sh` | Buduje aplikację na NixOS przez nix-shell |
+| `scripts/nix/run.sh` | Uruchamia z GStreamer + nixGL |
+| `scripts/nix/package-bundle.sh` | Pakuje binarkę w self-extracting .run |
 | `scripts/deploy-dist.sh` | Wdraża frontend na desktop-app.itvt.xyz |
 | `scripts/deploy-dist-debug.sh` | Wdraża na desktop-app-debug.itvt.xyz |
 
@@ -98,8 +98,8 @@ nix run --impure github:nix-community/nixGL -- ./desktop-app
 ### NixOS (jeden plik)
 
 ```bash
-chmod +x nix-itvt.sh
-./nix-itvt.sh
+chmod +x scripts/nix/itvt.sh
+./scripts/nix/itvt.sh
 ```
 
 ## Zależności zewnętrzne
