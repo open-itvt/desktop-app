@@ -12,7 +12,7 @@
 - `scripts/deploy-dist.sh` → deploy na **main** branch repozytorium dist.
 - `scripts/deploy-dist-debug.sh` → deploy na **debug** branch repozytorium dist.
 - `scripts/nix-build.sh` → build na NixOS
-- `itvt.sh` → one‑file launcher dla NixOS (umieść obok binarki)
+- `nix-itvt.sh` → one‑file launcher dla NixOS (umieść obok binarki)
 - Nie robimy deploy na oba naraz, chyba że wyraźnie polecone.
 
 ## Program data

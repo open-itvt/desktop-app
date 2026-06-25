@@ -60,7 +60,7 @@ pnpm tauri build
 bash scripts/nix-build.sh
 
 # Uruchomienie (1 plik)
-bash itvt.sh
+bash nix-itvt.sh
 
 # Lub pakowanie do self-extracting .run
 bash scripts/package-bundle.sh
@@ -98,8 +98,8 @@ nix run --impure github:nix-community/nixGL -- ./desktop-app
 ### NixOS (jeden plik)
 
 ```bash
-chmod +x itvt.sh
-./itvt.sh
+chmod +x nix-itvt.sh
+./nix-itvt.sh
 ```
 
 ## Zależności zewnętrzne
