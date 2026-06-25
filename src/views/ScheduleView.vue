@@ -171,7 +171,7 @@ function isHighlighted(title: string): boolean {
 .program-list { display: flex; flex-direction: column; gap: 8px; }
 .program-card { padding: 12px 16px; border-radius: var(--radius-sm); background: var(--bg-main); border: 1px solid var(--border-subtle); cursor: pointer; transition: filter 0.2s, border-color 0.2s, background 0.2s; }
 .program-card:hover { background: var(--bg-card-hover, var(--bg-card)); filter: brightness(1.05); }
-.program-card.live { border-color: var(--accent-red); border-width: 1px; }
+.program-card.live { border-color: var(--accent-red); border-width: 0.5px; }
 .program-card.highlighted { border-color: var(--accent-red); box-shadow: 0 0 0 1px var(--accent-red); }
 .program-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
 .program-time { font-size: 12px; font-weight: 600; color: var(--text-dark); }
