@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import LivePlayer from '@/components/live/LivePlayer.vue'
 import VodCarousel from '@/components/vod/VodCarousel.vue'
 import EpgBar from '@/components/layout/EpgBar.vue'
-import {
-  MOCK_CHANNEL_DATA,
-  MOCK_UPCOMING,
-  CHANNELS,
-} from '@/composables/useMockData'
+import { MOCK_CHANNEL_DATA, CHANNELS } from '@/composables/useMockData'
 import type { ChannelName } from '@/composables/useMockData'
+import { fetchEpg, getUpcomingForChannel } from '@/composables/useEpgApi'
 
 const route = useRoute()
 const chParam = (route.query.channel as string) || 'iTVT'
@@ -17,6 +14,12 @@ const activeChannel = ref<ChannelName>(
   CHANNELS.includes(chParam as ChannelName) ? (chParam as ChannelName) : 'iTVT'
 )
 const currentChannel = computed(() => MOCK_CHANNEL_DATA[activeChannel.value])
+const upcoming = ref<{ time: string; title: string }[]>([])
+
+onMounted(async () => {
+  const epg = await fetchEpg()
+  upcoming.value = getUpcomingForChannel(epg, activeChannel.value, 4)
+})
 </script>
 
 <template>
@@ -42,7 +45,7 @@ const currentChannel = computed(() => MOCK_CHANNEL_DATA[activeChannel.value])
       <div class="top-right">
         <div class="upcoming-list">
           <div
-            v-for="(item, index) in MOCK_UPCOMING[activeChannel]"
+            v-for="(item, index) in upcoming"
             :key="index"
             class="upcoming-card"
           >

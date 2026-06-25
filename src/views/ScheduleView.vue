@@ -1,60 +1,57 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { fetchEpg, useApiError } from '@/composables/useEpgApi'
+import { fetchEpg, filterEpgByDay, useApiError } from '@/composables/useEpgApi'
 import ApiErrorBanner from '@/components/ui/ApiErrorBanner.vue'
 import { MOCK_CHANNELS_DATA } from '@/composables/useMockData'
+import { ChevronDownIcon } from '@heroicons/vue/24/outline'
 
-interface Program { time: string; title: string; category: string; isLive: boolean }
-interface ChannelData { name: string; icon: string; programs: Program[] }
-
-const router = useRouter()
-const { apiError, showError, hideError } = useApiError()
-const channels = ref<ChannelData[]>([])
+const { apiError, showError } = useApiError()
+const channels = ref<any[]>([])
 const loading = ref(true)
-const activeDay = ref<'dzis' | 'jutro'>('dzis')
-const showFilter = ref(false)
-const filterCategory = ref<string | null>(null)
+const selectedDay = ref(0)     // 0=today, 1=tomorrow, …
+const showDayPicker = ref(false)
 const searchHighlight = ref('')
 
-const JUTRO_DATA: ChannelData[] = [
-  {
-    name: 'iTVT', icon: 'iT',
-    programs: [
-      { time: '08:00', title: 'Poranek Technologiczny', category: 'Informacje', isLive: false },
-      { time: '10:00', title: 'Fast News IT', category: 'Informacje', isLive: false },
-      { time: '14:00', title: 'GStreamer Deep Dive', category: 'Edukacja', isLive: false },
-      { time: '19:00', title: 'Wydarzenia Dnia', category: 'Informacje', isLive: false },
-      { time: '21:00', title: 'Retrogaming Chiptune', category: 'Rozrywka', isLive: false },
-    ],
-  },
-  {
-    name: 'Oliwier Stream', icon: 'OS',
-    programs: [
-      { time: '09:00', title: 'Poranny Stream', category: 'Rozrywka', isLive: false },
-      { time: '14:00', title: 'Speedrun Session', category: 'Gry', isLive: false },
-      { time: '20:00', title: 'Oliwier na Żywo', category: 'Rozrywka', isLive: false },
-    ],
-  },
-]
+function dayLabel(offset: number): string {
+  if (offset === 0) return 'Dziś'
+  if (offset === 1) return 'Jutro'
+  const d = new Date()
+  d.setDate(d.getDate() + offset)
+  return d.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'short' })
+}
+
+const days = Array.from({ length: 7 }, (_, i) => i)
+
+const filteredChannels = computed(() => {
+  const epg = filterEpgByDay(channels.value, selectedDay.value)
+  return epg.map(ch => {
+    const mock = MOCK_CHANNELS_DATA.find(m => m.name === ch.name) || { icon: ch.name.charAt(0) }
+    return {
+      name: ch.name,
+      icon: mock.icon,
+      programs: ch.epg.map(p => {
+        const start = new Date(p.start)
+        const end = new Date(p.end)
+        const now = Date.now()
+        return {
+          time: start.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+          title: p.title,
+          category: p.category?.name || 'Inne',
+          isLive: selectedDay.value === 0 && now >= start.getTime() && now < end.getTime(),
+        }
+      }),
+    }
+  })
+})
 
 onMounted(async () => {
   try {
-    const epg = await fetchEpg()
-    channels.value = epg.map(ch => {
-      const mock = MOCK_CHANNELS_DATA.find(m => m.name === ch.name) || { icon: ch.name.charAt(0) }
-      return { name: ch.name, icon: mock.icon, programs: mapEpgToPrograms(ch.epg) }
-    })
+    channels.value = await fetchEpg()
   } catch {
-    channels.value = MOCK_CHANNELS_DATA.map(ch => ({
-      name: ch.name, icon: ch.icon,
-      programs: ch.programs.map(p => ({ time: p.time, title: p.title, category: p.category, isLive: p.isLive })),
-    }))
     showError()
   }
   loading.value = false
 
-  // Clear leftover search highlight on fresh load
   const q = localStorage.getItem('ivod_search_query')
   if (q && q.length > 0) searchHighlight.value = q
   window.addEventListener('search-highlight', (e: Event) => {
@@ -62,41 +59,7 @@ onMounted(async () => {
   })
 })
 
-function mapEpgToPrograms(epg: any[]): Program[] {
-  return epg.map(e => {
-    const start = new Date(e.start)
-    const end = new Date(e.end)
-    const now = Date.now()
-    return {
-      time: start.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
-      title: e.title,
-      category: e.category?.name || 'Inne',
-      isLive: now >= start.getTime() && now < end.getTime(),
-    }
-  })
-}
-
-const displayedData = computed(() => {
-  if (activeDay.value === 'dzis') {
-    return channels.value.map(ch => ({
-      ...ch,
-      programs: ch.programs.filter(p => !filterCategory.value || p.category === filterCategory.value),
-    })).filter(ch => ch.programs.length > 0)
-  }
-  return JUTRO_DATA.map(ch => ({
-    ...ch,
-    programs: ch.programs.filter(p => !filterCategory.value || p.category === filterCategory.value),
-  })).filter(ch => ch.programs.length > 0)
-})
-
-const allCategories = computed(() => {
-  const source = activeDay.value === 'dzis' ? channels.value : JUTRO_DATA
-  return [...new Set(source.flatMap(ch => ch.programs.map(p => p.category)))]
-})
-
-function setDay(day: 'dzis' | 'jutro') { activeDay.value = day; filterCategory.value = null }
-function toggleFilter() { showFilter.value = !showFilter.value }
-function setCategory(cat: string | null) { filterCategory.value = cat; showFilter.value = false }
+function selectDay(offset: number) { selectedDay.value = offset; showDayPicker.value = false }
 function isHighlighted(title: string): boolean {
   return searchHighlight.value.length > 0 && title.toLowerCase().includes(searchHighlight.value.toLowerCase())
 }
@@ -104,17 +67,25 @@ function isHighlighted(title: string): boolean {
 
 <template>
   <div class="schedule">
-    <ApiErrorBanner :visible="apiError" @close="hideError" />
+    <ApiErrorBanner :visible="apiError" @close="apiError = false" />
     <div class="page-top">
       <h1 class="page-heading">Harmonogram</h1>
       <div class="page-actions">
-        <button class="filter-btn" :class="{ active: activeDay === 'dzis' }" @click="setDay('dzis')">Dziś</button>
-        <button class="filter-btn" :class="{ active: activeDay === 'jutro' }" @click="setDay('jutro')">Jutro</button>
-        <div class="dropdown-wrapper">
-          <button class="filter-btn" :class="{ active: showFilter || filterCategory }" @click="toggleFilter">Filtry</button>
-          <div v-if="showFilter" class="dropdown-panel" @click.stop>
-            <div class="dropdown-option" :class="{ checked: !filterCategory }" @click="setCategory(null)">Wszystkie</div>
-            <div v-for="cat in allCategories" :key="cat" class="dropdown-option" :class="{ checked: filterCategory === cat }" @click="setCategory(cat)">{{ cat }}</div>
+        <div class="day-picker-wrapper">
+          <button class="filter-btn active" @click="showDayPicker = !showDayPicker">
+            {{ dayLabel(selectedDay) }}
+            <ChevronDownIcon class="chevron-icon" />
+          </button>
+          <div v-if="showDayPicker" class="day-picker-dropdown" @click.stop>
+            <div
+              v-for="d in days"
+              :key="d"
+              class="day-option"
+              :class="{ checked: selectedDay === d }"
+              @click="selectDay(d)"
+            >
+              {{ dayLabel(d) }}
+            </div>
           </div>
         </div>
       </div>
@@ -123,16 +94,23 @@ function isHighlighted(title: string): boolean {
     <div v-if="loading" class="loading-state"><span class="loading-text">Ładowanie harmonogramu...</span></div>
 
     <div v-else class="schedule-grid">
-      <div v-for="ch in displayedData" :key="ch.name + activeDay" class="channel-card">
+      <div v-if="filteredChannels.length === 0 && !loading" class="loading-state">
+        <span class="loading-text">Brak programów tego dnia</span>
+      </div>
+      <div v-for="ch in filteredChannels" :key="ch.name + '-' + selectedDay" class="channel-card">
         <div class="channel-header">
           <span class="channel-icon">{{ ch.icon }}</span>
           <span class="channel-name">{{ ch.name }}</span>
         </div>
         <div class="program-list">
-          <div v-for="(prog, i) in ch.programs" :key="i"
+          <div v-if="ch.programs.length === 0" class="empty-prog">Brak programów tego dnia</div>
+          <div
+            v-for="(prog, i) in ch.programs"
+            :key="i"
             class="program-card"
             :class="{ live: prog.isLive, highlighted: isHighlighted(prog.title) }"
-            @click="router.push('/?channel=' + encodeURIComponent(ch.name))">
+            @click="$router.push('/?channel=' + encodeURIComponent(ch.name))"
+          >
             <div class="program-top">
               <span class="program-time">{{ prog.time }}</span>
               <span v-if="prog.isLive" class="live-tag">LIVE</span>
@@ -149,28 +127,38 @@ function isHighlighted(title: string): boolean {
 
 <style scoped>
 .schedule { padding: 32px; display: flex; flex-direction: column; gap: 24px; height: 100%; }
-.filter-btn { border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-muted); font-family: var(--font-family); cursor: pointer; background: transparent; padding: 6px 14px; font-size: 13px; transition: all 0.2s; }
-.filter-btn.active { background: var(--accent-red); border-color: var(--accent-red); color: #fff; }
-.filter-btn:hover:not(.active) { filter: brightness(1.1); }
-.dropdown-wrapper { position: relative; }
-.dropdown-panel { position: absolute; top: calc(100% + 4px); right: 0; z-index: 50; min-width: 180px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-.dropdown-option { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; color: var(--text-main); transition: filter 0.2s; }
-.dropdown-option:hover { filter: brightness(1.1); }
-.dropdown-option.checked { color: var(--accent-red); font-weight: 600; }
+
 .page-top { display: flex; align-items: center; justify-content: space-between; }
 .page-heading { font-size: 28px; font-weight: 700; color: var(--text-main); margin: 0; }
-.page-actions { display: flex; gap: 8px; }
-.schedule-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; flex: 1; align-content: start; }
+.page-actions { display: flex; gap: 8px; position: relative; }
+
+.day-picker-wrapper { position: relative; }
+.filter-btn { display: flex; align-items: center; gap: 4px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-muted); font-family: var(--font-family); cursor: pointer; background: transparent; padding: 6px 14px; font-size: 13px; transition: all 0.2s; }
+.filter-btn.active { background: var(--accent-red); border-color: var(--accent-red); color: #fff; }
+.chevron-icon { width: 14px; height: 14px; }
+
+.day-picker-dropdown {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 50; min-width: 200px;
+  background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+  padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.day-option { padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; color: var(--text-main); transition: filter 0.2s; }
+.day-option:hover { filter: brightness(1.1); }
+.day-option.checked { color: var(--accent-red); font-weight: 600; }
+
 .loading-state { display: flex; align-items: center; justify-content: center; padding: 48px; }
 .loading-text { font-size: 14px; color: var(--text-muted); }
+
+.schedule-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; flex: 1; align-content: start; }
 .channel-card { padding: 16px; background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); cursor: pointer; transition: filter 0.2s; }
 .channel-card:hover { filter: brightness(1.1); }
 .channel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle); }
 .channel-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--accent-red); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .channel-name { font-size: 18px; font-weight: 700; color: var(--text-main); }
 .program-list { display: flex; flex-direction: column; gap: 8px; }
+.empty-prog { padding: 16px; text-align: center; font-size: 13px; color: var(--text-dark); }
 .program-card { padding: 12px 16px; border-radius: var(--radius-sm); background: var(--bg-main); border: 1px solid var(--border-subtle); cursor: pointer; transition: filter 0.2s, border-color 0.2s, background 0.2s; }
-.program-card:hover { background: var(--bg-card-hover, var(--bg-card)); filter: brightness(1.05); }
+.program-card:hover { background: var(--bg-card-hover, var(--bg-card)); }
 .program-card.live { border-color: var(--accent-red); border-width: 0.5px; }
 .program-card.highlighted { border-color: var(--accent-red); box-shadow: 0 0 0 1px var(--accent-red); }
 .program-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
