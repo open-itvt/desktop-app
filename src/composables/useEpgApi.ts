@@ -29,7 +29,11 @@ export function useApiError() {
     clearTimeout(errorTimeout)
     errorTimeout = setTimeout(() => { apiError.value = false }, 10000)
   }
-  return { apiError, showError }
+  function hideError() {
+    apiError.value = false
+    clearTimeout(errorTimeout)
+  }
+  return { apiError, showError, hideError }
 }
 
 export async function fetchEpg(query?: string): Promise<ApiChannel[]> {

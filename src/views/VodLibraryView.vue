@@ -8,7 +8,7 @@ import type { VodItem } from '@/types'
 
 const allItems = ref<VodItem[]>([])
 const loading = ref(true)
-const { apiError, showError } = useApiError()
+const { apiError, hideError } = useApiError()
 
 const showFilters = ref(false)
 const showSort = ref(false)
@@ -41,7 +41,7 @@ function setSort(s: 'date' | 'title') { activeSort.value = s; showSort.value = f
 
 <template>
   <div class="vod-library">
-    <ApiErrorBanner :visible="apiError" @close="showError" />
+    <ApiErrorBanner :visible="apiError" @close="hideError" />
 
     <SectionHeader title="BIBLIOTEKA VOD">
       <template #actions>

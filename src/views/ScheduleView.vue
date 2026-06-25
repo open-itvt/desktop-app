@@ -9,7 +9,7 @@ interface Program { time: string; title: string; category: string; isLive: boole
 interface ChannelData { name: string; icon: string; programs: Program[] }
 
 const router = useRouter()
-const { apiError, showError } = useApiError()
+const { apiError, showError, hideError } = useApiError()
 const channels = ref<ChannelData[]>([])
 const loading = ref(true)
 const activeDay = ref<'dzis' | 'jutro'>('dzis')
@@ -24,7 +24,7 @@ const JUTRO_DATA: ChannelData[] = [
       { time: '08:00', title: 'Poranek Technologiczny', category: 'Informacje', isLive: false },
       { time: '10:00', title: 'Fast News IT', category: 'Informacje', isLive: false },
       { time: '14:00', title: 'GStreamer Deep Dive', category: 'Edukacja', isLive: false },
-      { time: '19:00', title: 'Wydarzenia Dnia', category: 'Informacje', isLive: true },
+      { time: '19:00', title: 'Wydarzenia Dnia', category: 'Informacje', isLive: false },
       { time: '21:00', title: 'Retrogaming Chiptune', category: 'Rozrywka', isLive: false },
     ],
   },
@@ -33,7 +33,7 @@ const JUTRO_DATA: ChannelData[] = [
     programs: [
       { time: '09:00', title: 'Poranny Stream', category: 'Rozrywka', isLive: false },
       { time: '14:00', title: 'Speedrun Session', category: 'Gry', isLive: false },
-      { time: '20:00', title: 'Oliwier na Żywo', category: 'Rozrywka', isLive: true },
+      { time: '20:00', title: 'Oliwier na Żywo', category: 'Rozrywka', isLive: false },
     ],
   },
 ]
@@ -104,7 +104,7 @@ function isHighlighted(title: string): boolean {
 
 <template>
   <div class="schedule">
-    <ApiErrorBanner :visible="apiError" @close="showError" />
+    <ApiErrorBanner :visible="apiError" @close="hideError" />
     <div class="page-top">
       <h1 class="page-heading">Harmonogram</h1>
       <div class="page-actions">
@@ -170,9 +170,9 @@ function isHighlighted(title: string): boolean {
 .channel-name { font-size: 18px; font-weight: 700; color: var(--text-main); }
 .program-list { display: flex; flex-direction: column; gap: 8px; }
 .program-card { padding: 12px 16px; border-radius: var(--radius-sm); background: var(--bg-main); border: 1px solid var(--border-subtle); cursor: pointer; transition: filter 0.2s, border-color 0.2s, background 0.2s; }
-.program-card:hover { filter: brightness(1.1); }
-.program-card.live { background: var(--accent-red-muted); border-color: var(--accent-red); }
-.program-card.highlighted { border-color: var(--accent-red); border-width: 2px; box-shadow: 0 0 0 1px var(--accent-red); }
+.program-card:hover { background: var(--bg-card-hover, var(--bg-card)); filter: brightness(1.05); }
+.program-card.live { border-color: var(--accent-red); border-width: 2px; }
+.program-card.highlighted { border-color: var(--accent-red); box-shadow: 0 0 0 1px var(--accent-red); }
 .program-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
 .program-time { font-size: 12px; font-weight: 600; color: var(--text-dark); }
 .live-tag { font-size: 10px; font-weight: 700; color: var(--accent-red); text-transform: uppercase; letter-spacing: 0.5px; }

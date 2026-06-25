@@ -7,7 +7,7 @@ import { fetchVod, useApiError } from '@/composables/useEpgApi'
 import type { VodItem } from '@/types'
 
 const items = ref<VodItem[]>([])
-const { apiError, showError } = useApiError()
+const { apiError, hideError } = useApiError()
 const showFilter = ref(false)
 const searchTerm = ref('')
 
@@ -26,7 +26,7 @@ function toggleFilter() { showFilter.value = !showFilter.value }
 
 <template>
   <section class="vod-carousel">
-    <ApiErrorBanner :visible="apiError" @close="showError" />
+    <ApiErrorBanner :visible="apiError" @close="hideError" />
 
     <SectionHeader title="BIBLIOTEKA VOD: NOWE I POLECANE">
       <template #actions>
