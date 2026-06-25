@@ -71,6 +71,7 @@ bash scripts/nix/package-bundle.sh
 
 | Skrypt | Opis |
 |--------|------|
+| `scripts/nix/all.sh` | Buduje + pakuje .run + czyści artefakty (full pipeline) |
 | `scripts/nix/build.sh` | Buduje aplikację na NixOS przez nix-shell |
 | `scripts/nix/run.sh` | Uruchamia z GStreamer + nixGL |
 | `scripts/nix/package-bundle.sh` | Pakuje binarkę w self-extracting .run |
