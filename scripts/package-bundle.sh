@@ -78,6 +78,7 @@ case "$GPU" in
   nvidia) FLAKE="github:nix-community/nixGL#nixGLNVIDIA" ;;
   amd)    FLAKE="github:nix-community/nixGL#nixGLAMD" ;;
   *)      FLAKE="github:nix-community/nixGL" ;;
+esac
 
 exec nix run --impure "$FLAKE" -- "$TMP_DIR/desktop-app"
 EOF
