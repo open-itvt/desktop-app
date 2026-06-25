@@ -75,12 +75,11 @@ export WEBKIT_USE_GL=software
 # GPU detection
 GPU="$(lspci 2>/dev/null | grep -iE "vga|3d|display" | grep -ioE "intel|nvidia|amd" | head -1 || echo "auto")"
 case "$GPU" in
-  nvidia) WRAPPER="nixGLNVIDIA" ;;
-  amd)    WRAPPER="nixGLAMD" ;;
-  *)      WRAPPER="nixGL" ;;
-esac
+  nvidia) FLAKE="github:nix-community/nixGL#nixGLNVIDIA" ;;
+  amd)    FLAKE="github:nix-community/nixGL#nixGLAMD" ;;
+  *)      FLAKE="github:nix-community/nixGL" ;;
 
-exec nix run --impure github:nix-community/nixGL --wrapper "$WRAPPER" -- "$TMP_DIR/desktop-app"
+exec nix run --impure "$FLAKE" -- "$TMP_DIR/desktop-app"
 EOF
 
 echo "$BOUNDARY" >> "$OUTPUT"
