@@ -3,7 +3,10 @@
 # Usage: bash run.sh [path-to-binary]
 set -euo pipefail
 
-BINARY="${1:-./usr/bin/desktop-app}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+DEFAULT_BINARY="$PROJECT_DIR/src-tauri/target/release/desktop-app"
+BINARY="${1:-$DEFAULT_BINARY}"
 
 # Find GStreamer plugins from Nix store
 GST_LIB_PATH=""
