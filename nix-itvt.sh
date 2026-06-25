@@ -46,4 +46,12 @@ export WEBKIT_DISABLE_COMPOSITING_MODE=1
 export WEBKIT_DISABLE_DMABUF_RENDERER=1
 export WEBKIT_USE_GL=software
 
-exec nix run --impure github:nix-community/nixGL -- "$BINARY"
+# GPU detection — wybierz odpowiedni wrapper nixGL
+GPU="$(lspci 2>/dev/null | grep -iE "vga|3d|display" | grep -ioE "intel|nvidia|amd" | head -1 || echo "auto")"
+case "$GPU" in
+  nvidia) WRAPPER="nixGLNVIDIA" ;;
+  amd)    WRAPPER="nixGLAMD" ;;
+  *)      WRAPPER="nixGL" ;;
+esac
+
+exec nix run --impure github:nix-community/nixGL --wrapper "$WRAPPER" -- "$BINARY"
