@@ -139,9 +139,10 @@ jobs:
           pnpm tauri build
       - name: Stage Linux x86 artifacts
         run: |
-          mkdir -p staging/linux-x86/deb staging/linux-x86/appimage
+          mkdir -p staging/linux-x86/deb staging/linux-x86/appimage staging/linux-x86/rpm
           cp src-tauri/target/release/bundle/deb/*.deb staging/linux-x86/deb/ 2>/dev/null || true
           cp src-tauri/target/release/bundle/appimage/*.AppImage staging/linux-x86/appimage/ 2>/dev/null || true
+          cp src-tauri/target/release/bundle/rpm/*.rpm staging/linux-x86/rpm/ 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         with:
           name: itvt-linux-x86
