@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { StarIcon as StarOutline } from '@heroicons/vue/24/outline'
+import { StarIcon as StarSolid } from '@heroicons/vue/20/solid'
 import LivePlayer from '@/components/live/LivePlayer.vue'
 import VodCarousel from '@/components/vod/VodCarousel.vue'
 import EpgBar from '@/components/layout/EpgBar.vue'
@@ -10,6 +12,7 @@ import type { ChannelName } from '@/composables/useMockData'
 import { fetchEpg, getUpcomingForChannel } from '@/composables/useEpgApi'
 import type { ApiChannel } from '@/composables/useEpgApi'
 
+const FAV_KEY = 'itvt_fav_channels'
 const route = useRoute()
 const chParam = (route.query.channel as string) || 'iTVT'
 const activeChannel = ref<ChannelName>(
@@ -17,6 +20,19 @@ const activeChannel = ref<ChannelName>(
 )
 const epgData = ref<ApiChannel[]>([])
 const upcoming = ref<{ time: string; title: string }[]>([])
+
+function getFavs(): string[] {
+  try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]') } catch { return [] }
+}
+
+function toggleFav(name: string) {
+  let favs = getFavs()
+  if (favs.includes(name)) favs = favs.filter(f => f !== name)
+  else favs.push(name)
+  localStorage.setItem(FAV_KEY, JSON.stringify(favs))
+}
+
+const isFav = computed(() => getFavs().includes(activeChannel.value))
 
 onMounted(async () => {
   epgData.value = await fetchEpg()
@@ -51,6 +67,10 @@ const currentChannel = computed<Channel>(() => {
       <div class="channel-tabs">
         <button v-for="ch in CHANNELS" :key="ch" class="channel-tab" :class="{ active: activeChannel === ch }" @click="activeChannel = ch">{{ ch }}</button>
       </div>
+      <button class="fav-btn" :class="{ active: isFav }" @click="toggleFav(activeChannel)" :title="isFav ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'">
+        <StarSolid v-if="isFav" class="fav-icon-solid" />
+        <StarOutline v-else class="fav-icon-outline" />
+      </button>
     </div>
     <div class="dashboard-top">
       <div class="top-left"><LivePlayer :channel="currentChannel" /></div>
@@ -75,6 +95,11 @@ const currentChannel = computed<Channel>(() => {
 .channel-tab { padding: 6px 16px; border: 1px solid var(--border-subtle); border-radius: 20px; background: transparent; color: var(--text-muted); font-family: var(--font-family); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
 .channel-tab.active { background: var(--accent-red); border-color: var(--accent-red); color: #fff; }
 .channel-tab:hover:not(.active) { filter: brightness(1.1); }
+.fav-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid var(--border-subtle); border-radius: 50%; background: transparent; cursor: pointer; transition: filter 0.2s; flex-shrink: 0; }
+.fav-btn:hover { filter: brightness(1.1); }
+.fav-btn.active { border-color: #f59e0b; background: rgba(245,158,11,0.1); }
+.fav-icon-solid { width: 18px; height: 18px; color: #f59e0b; }
+.fav-icon-outline { width: 18px; height: 18px; color: var(--text-muted); }
 .dashboard-top { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; }
 .top-right { display: flex; flex-direction: column; gap: 0; }
 .upcoming-list { display: flex; flex-direction: column; gap: 8px; flex: 1; }

@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   CheckBadgeIcon, HeartIcon, PlayCircleIcon, BookmarkIcon,
   PencilSquareIcon, XMarkIcon, ClockIcon,
 } from '@heroicons/vue/24/outline'
 import SectionHeader from '@/components/ui/SectionHeader.vue'
 import VodCard from '@/components/vod/VodCard.vue'
-import { CHANNELS } from '@/composables/useMockData'
 import { fetchChannelVideos } from '@/composables/useOdysee'
 import { useProfile } from '@/composables/useProfile'
 import { getWatchCount } from '@/composables/useWatchHistory'
 import type { VodItem } from '@/types'
 
+const router = useRouter()
 const { profile, save: saveProfile } = useProfile()
 const BKS_KEY = 'ivod_bookmarks'
+const FAV_KEY = 'itvt_fav_channels'
 
 const editMode = ref(false)
 const editNickname = ref('')
@@ -21,26 +23,24 @@ const editInitial = ref('')
 const bookmarkedVods = ref<VodItem[]>([])
 const watchCount = ref(0)
 const favCount = ref(0)
-const watchedItems = ref<{ id: string; title: string; thumbnail: string; type: string }[]>([])
+const watchedItems = ref<{ id: string; title: string; type: string }[]>([])
+const favChannels = ref<string[]>([])
 
 onMounted(() => {
   loadBookmarks()
   loadHistory()
   loadWatched()
+  loadFavChannels()
   window.addEventListener('bookmark-changed', loadBookmarks)
 })
 
 function openEdit() { editNickname.value = profile.nickname; editInitial.value = profile.initial; editMode.value = true }
 function closeEdit() { editMode.value = false }
-function confirmEdit() {
-  if (editNickname.value.trim()) saveProfile(editNickname.value.trim(), editInitial.value.trim())
-  editMode.value = false
-}
+function confirmEdit() { if (editNickname.value.trim()) saveProfile(editNickname.value.trim(), editInitial.value.trim()); editMode.value = false }
 
 async function loadBookmarks() {
   try {
-    const raw = localStorage.getItem(BKS_KEY)
-    if (!raw) return
+    const raw = localStorage.getItem(BKS_KEY); if (!raw) return
     const ids: number[] = JSON.parse(raw)
     favCount.value = ids.length
     const all = await fetchChannelVideos()
@@ -52,23 +52,21 @@ function loadHistory() { watchCount.value = getWatchCount() }
 
 function loadWatched() {
   try {
-    const raw = localStorage.getItem('ivod_watch_history')
-    if (!raw) return
+    const raw = localStorage.getItem('ivod_watch_history'); if (!raw) return
     const ids: string[] = JSON.parse(raw)
-    const items: { id: string; title: string; thumbnail: string; type: string }[] = []
-    for (const id of ids) {
-      if (id.startsWith('vod:')) {
-        items.push({ id, title: 'Film VOD', thumbnail: '', type: 'vod' })
-      } else if (id.startsWith('live:')) {
-        const ch = id.replace('live:', '')
-        items.push({ id, title: ch, thumbnail: '', type: 'live' })
-      }
-    }
-    watchedItems.value = items.slice(-10).reverse()
+    watchedItems.value = ids.slice(-10).reverse().map(id => {
+      if (id.startsWith('live:')) return { id, title: id.replace('live:', ''), type: 'live' }
+      return { id, title: 'Film VOD', type: 'vod' }
+    })
   } catch { /* ignore */ }
 }
 
-const recentChannels = CHANNELS.slice(0, 3)
+function loadFavChannels() {
+  try { favChannels.value = JSON.parse(localStorage.getItem(FAV_KEY) || '[]') } catch { favChannels.value = [] }
+}
+
+function goToChannel(name: string) { router.push('/?channel=' + encodeURIComponent(name)) }
+function goToVod() { router.push('/vod') }
 </script>
 
 <template>
@@ -92,14 +90,14 @@ const recentChannels = CHANNELS.slice(0, 3)
 
       <div class="profile-section">
         <div class="section-header-row">
-          <BookmarkIcon class="section-icon" />
+          <ClockIcon class="section-icon" />
           <h3 class="section-title">Obejrzane</h3>
         </div>
         <div v-if="watchedItems.length === 0" class="empty-state">
           <ClockIcon class="empty-icon" /><span class="empty-text">Brak obejrzanych treści</span>
         </div>
         <div v-else class="watched-grid">
-          <div v-for="(item, i) in watchedItems" :key="i" class="watched-card">
+          <div v-for="(item, i) in watchedItems" :key="i" class="watched-card" @click="item.type === 'live' ? goToChannel(item.title) : goToVod()">
             <div class="watched-thumb">
               <span v-if="item.type === 'live'" class="watched-icon">TV</span>
               <PlayCircleIcon v-else class="watched-icon-vod" />
@@ -127,8 +125,11 @@ const recentChannels = CHANNELS.slice(0, 3)
           <BookmarkIcon class="section-icon" />
           <h3 class="section-title">Ulubione kanały</h3>
         </div>
-        <div class="channels-row">
-          <div v-for="ch in recentChannels" :key="ch" class="channel-chip"><BookmarkIcon class="chip-icon" /><span>{{ ch }}</span></div>
+        <div v-if="favChannels.length === 0" class="empty-state">
+          <BookmarkIcon class="empty-icon" /><span class="empty-text">Brak ulubionych kanałów</span>
+        </div>
+        <div v-else class="channels-row">
+          <div v-for="ch in favChannels" :key="ch" class="channel-chip" @click="goToChannel(ch)"><BookmarkIcon class="chip-icon" /><span>{{ ch }}</span></div>
         </div>
       </div>
     </div>
@@ -137,10 +138,7 @@ const recentChannels = CHANNELS.slice(0, 3)
       <Transition name="modal">
         <div v-if="editMode" class="modal-overlay" @click.self="closeEdit">
           <div class="modal-card">
-            <div class="modal-header">
-              <h2 class="modal-title">Edytuj profil</h2>
-              <button class="modal-close" @click="closeEdit"><XMarkIcon class="close-icon" /></button>
-            </div>
+            <div class="modal-header"><h2 class="modal-title">Edytuj profil</h2><button class="modal-close" @click="closeEdit"><XMarkIcon class="close-icon" /></button></div>
             <div class="modal-body">
               <label class="field"><span class="field-label">Nazwa</span><input v-model="editNickname" class="field-input" placeholder="Twoja nazwa" /></label>
               <label class="field"><span class="field-label">Inicjał (awatar)</span><input v-model="editInitial" class="field-input" maxlength="2" placeholder="A" /></label>
