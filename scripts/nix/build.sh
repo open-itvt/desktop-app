@@ -2,7 +2,7 @@
 set -euo pipefail
 
 echo "=== Building iTVT with Nix ==="
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 # Enter nix shell and build
 nix-shell --run "
