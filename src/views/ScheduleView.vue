@@ -54,8 +54,9 @@ onMounted(async () => {
   }
   loading.value = false
 
+  // Clear leftover search highlight on fresh load
   const q = localStorage.getItem('ivod_search_query')
-  if (q) searchHighlight.value = q
+  if (q && q.length > 0) searchHighlight.value = q
   window.addEventListener('search-highlight', (e: Event) => {
     searchHighlight.value = (e as CustomEvent).detail || ''
   })
@@ -131,7 +132,7 @@ function isHighlighted(title: string): boolean {
           <div v-for="(prog, i) in ch.programs" :key="i"
             class="program-card"
             :class="{ live: prog.isLive, highlighted: isHighlighted(prog.title) }"
-            @click="router.push('/')">
+            @click="router.push('/?channel=' + encodeURIComponent(ch.name))">
             <div class="program-top">
               <span class="program-time">{{ prog.time }}</span>
               <span v-if="prog.isLive" class="live-tag">LIVE</span>

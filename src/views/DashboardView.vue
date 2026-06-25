@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import LivePlayer from '@/components/live/LivePlayer.vue'
 import VodCarousel from '@/components/vod/VodCarousel.vue'
 import EpgBar from '@/components/layout/EpgBar.vue'
@@ -10,7 +11,11 @@ import {
 } from '@/composables/useMockData'
 import type { ChannelName } from '@/composables/useMockData'
 
-const activeChannel = ref<ChannelName>('iTVT')
+const route = useRoute()
+const chParam = (route.query.channel as string) || 'iTVT'
+const activeChannel = ref<ChannelName>(
+  CHANNELS.includes(chParam as ChannelName) ? (chParam as ChannelName) : 'iTVT'
+)
 const currentChannel = computed(() => MOCK_CHANNEL_DATA[activeChannel.value])
 </script>
 
