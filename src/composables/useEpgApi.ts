@@ -92,14 +92,14 @@ function getFallback(): VodItem[] {
   return [
     {
       id: 101, title: 'Retro time #5 | 28.11.24', programName: 'Retro Time', part: 5, programSlug: 'retro-time',
-      videoName: 'retrotime_28.11.24', claimId: 'fallback101',
-      thumbnailUrl: '',
+      videoName: 'retrotime_28.11.24', claimId: 'a4052396df05e011d2cbbbb0b16a00238fd54fcd',
+      thumbnailUrl: 'https://thumbnails.odycdn.com/card/s:640:360/quality:85/plain/https://odysee.com/retrotime_28.11.24/a4052396df05e011d2cbbbb0b16a00238fd54fcd',
       date: '2024-11-28', releaseTime: 1732752000, views: 120,
     },
     {
       id: 102, title: 'Retro time #4 | 21.11.24', programName: 'Retro Time', part: 4, programSlug: 'retro-time',
-      videoName: 'retrotime_21.11.24', claimId: 'fallback102',
-      thumbnailUrl: '',
+      videoName: 'retrotime_21.11.24', claimId: 'a4052396df05e011d2cbbbb0b16a00238fd54fc',
+      thumbnailUrl: 'https://thumbnails.odycdn.com/card/s:640:360/quality:85/plain/https://odysee.com/retrotime_21.11.24/a4052396df05e011d2cbbbb0b16a00238fd54fc',
       date: '2024-11-21', releaseTime: 1732147200, views: 85,
     },
   ]
